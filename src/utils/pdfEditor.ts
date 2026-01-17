@@ -97,13 +97,10 @@ export async function addTextToPDF(file: File, annotations: TextAnnotation[]): P
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await PDFDocument.load(arrayBuffer);
   const helvetica = await pdf.embedFont(StandardFonts.Helvetica);
-  const helveticaBold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  
-  const pageHeight = 842; // A4 height in points
   
   annotations.forEach((annotation) => {
     const page = pdf.getPage(annotation.page - 1); // Convert to 0-indexed
-    const { width, height } = page.getSize();
+    const { height } = page.getSize();
     
     // Convert Y coordinate (PDF uses bottom-left origin, we use top-left)
     const pdfY = height - annotation.y;
