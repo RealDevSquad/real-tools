@@ -8,10 +8,12 @@ import {
   IconPlus,
   IconX,
   IconCheck,
-  IconRefresh
+  IconRefresh,
+  IconEye
 } from '@tabler/icons-react';
 import { combinePDFs, removePagesFromPDF, extractPagesFromPDF, getPDFPageCount, addTextToPDF, type TextAnnotation } from '../../utils/pdfEditor';
 import { Button } from '../ui/stateful-button';
+import { PDFPreview } from './PDFPreview';
 
 interface PDFFile {
   file: File;
@@ -30,6 +32,7 @@ export const PDFEditor = () => {
     fileId: string;
     annotation: Partial<TextAnnotation>;
   } | null>(null);
+  const [previewFile, setPreviewFile] = useState<PDFFile | null>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -375,12 +378,23 @@ export const PDFEditor = () => {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => removeFile(pdfFile.id)}
-                    className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                  >
-                    <IconTrash size={18} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {(mode === 'remove' || mode === 'extract' || mode === 'edit') && (
+                      <button
+                        onClick={() => setPreviewFile(pdfFile)}
+                        className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                        title="Preview PDF"
+                      >
+                        <IconEye size={18} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => removeFile(pdfFile.id)}
+                      className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                    >
+                      <IconTrash size={18} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Page Selection (for remove/extract modes) */}
@@ -652,6 +666,57 @@ export const PDFEditor = () => {
           </div>
         )}
       </div>
+
+      {/* PDF Preview Modal */}
+      {previewFile && (
+        <PDFPreview
+          file={previewFile.file}
+          mode={mode}
+          selectedPages={previewFile.selectedPages}
+          textAnnotations={previewFile.textAnnotations || []}
+          onPageSelect={(pageNum) => {
+            togglePageSelection(previewFile.id, pageNum);
+            setPreviewFile({
+              ...previewFile,
+              selectedPages: previewFile.selectedPages.includes(pageNum)
+                ? previewFile.selectedPages.filter(p => p !== pageNum)
+                : [...previewFile.selectedPages, pageNum].sort((a, b) => a - b)
+            });
+          }}
+          onTextEdit={(page, x, y, text) => {
+            if (text) {
+              const newAnnotation: TextAnnotation = {
+                page,
+                text,
+                x,
+                y,
+                fontSize: 12
+              };
+              setPdfFiles(pdfFiles.map(f => {
+                if (f.id === previewFile.id) {
+                  return {
+                    ...f,
+                    textAnnotations: [...(f.textAnnotations || []), newAnnotation]
+                  };
+                }
+                return f;
+              }));
+              setPreviewFile({
+                ...previewFile,
+                textAnnotations: [...(previewFile.textAnnotations || []), newAnnotation]
+              });
+            }
+          }}
+          onTextDelete={(index) => {
+            removeTextAnnotation(previewFile.id, index);
+            setPreviewFile({
+              ...previewFile,
+              textAnnotations: (previewFile.textAnnotations || []).filter((_, i) => i !== index)
+            });
+          }}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
     </motion.div>
   );
 };
