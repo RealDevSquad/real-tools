@@ -558,7 +558,7 @@ export default function App() {
               <IconBrandX size={14} />
               <span>Avi</span>
             </a>
-            <span>&</span>
+            <span>,</span>
             <a 
               href="https://x.com/dhirender_0001" 
               target="_blank" 
@@ -567,6 +567,16 @@ export default function App() {
             >
               <IconBrandX size={14} />
               <span>Dhirender</span>
+            </a>
+            <span>&</span>
+            <a 
+              href="https://x.com/Scalar_skeleton" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-primary transition-colors flex items-center gap-1.5 text-muted-foreground/60"
+            >
+              <IconBrandX size={14} />
+              <span>Scalar</span>
             </a>
           </div>
           <div className="flex items-center gap-1.5 text-muted-foreground/50">
