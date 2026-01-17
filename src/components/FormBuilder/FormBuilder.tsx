@@ -358,8 +358,8 @@ export const FormBuilder = () => {
       {/* Sidebar / Toolbox */}
       <div className="md:w-64 flex flex-col gap-4">
         <div className="bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/50 rounded-2xl shadow-xl p-6">
-          <h3 className="text-xl font-bold text-white mb-4">Toolbox</h3>
-          <p className="text-xs text-zinc-400 mb-4">Click to add fields to the page.</p>
+          <h3 className="text-xl font-bold text-white mb-4">Form Builder Toolbox</h3>
+          <p className="text-xs text-zinc-400 mb-4">Drag and drop fields to build your interactive PDF form. Click items below to add them to the canvas.</p>
           <div className="space-y-3">
              <button
               onClick={() => addField('label')}

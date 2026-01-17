@@ -410,13 +410,13 @@ export default function App() {
       >
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-muted border border-border text-xs font-semibold text-primary mb-8 backdrop-blur-md shadow-sm">
           <IconShield size={14} className="stroke-[2.5]" />
-          <span>Professional Privacy Tool</span>
+          <span>Privacy & Productivity Tools</span>
         </div>
         <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight text-foreground leading-[1.1]">
-          Metadata <span className="text-primary">Remover</span>
+          Privacy <span className="text-primary">Tools</span>
         </h1>
         <p className="text-muted-foreground text-lg leading-relaxed max-w-lg mx-auto mb-8">
-          Instantly strip sensitive Exif, XMP, and IPTC data from your photos.
+          Remove sensitive metadata from photos and build interactive PDF forms. All processing happens locally in your browser.
         </p>
 
         {/* Tab Navigation */}
