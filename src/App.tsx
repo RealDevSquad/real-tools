@@ -1,8 +1,8 @@
 import  { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, RefreshCw, Lock, Sparkles, CheckCircle, Shield, MapPin, Camera, Calendar, User, FileText } from 'lucide-react';
+import { Download, RefreshCw, Lock, Sparkles, CheckCircle, Shield, MapPin, Camera, Calendar, User, FileText, FileType } from 'lucide-react';
 import { ImageUploader } from './components/ImageUploader';
-import { removeMetadata, formatBytes } from './utils/imageProcessor';
+import { removeMetadata, formatBytes } from './utils/fileProcessor';
 
 function App() {
   const [file, setFile] = useState<File | null>(null);
@@ -21,7 +21,7 @@ function App() {
       setProcessedBlob(blob);
     } catch (err) {
       console.error(err);
-      setError('Failed to process image. Please try again.');
+      setError('Failed to process file. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -45,7 +45,7 @@ function App() {
     setError(null);
   };
 
-  const InfoItem = ({ icon: Icon, label }: { icon: any, label: string }) => (
+  const InfoItem = ({ icon: Icon, label }: { icon: React.ElementType, label: string }) => (
     <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
       <div className="p-2 rounded-full bg-violet-500/10 text-violet-400">
         <Icon className="w-4 h-4" />
@@ -122,13 +122,17 @@ function App() {
                   
                   <h3 className="text-2xl font-bold text-white mb-2">Sanitization Complete</h3>
                   <p className="text-zinc-400 mb-8 text-sm">
-                    Your image has been scrubbed and re-encoded.
+                    Your file has been scrubbed and cleaned.
                   </p>
 
                   <div className="w-full bg-black/20 rounded-xl p-4 mb-6 border border-white/5">
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-lg bg-zinc-800 overflow-hidden shrink-0">
-                        {file && <img src={URL.createObjectURL(file)} className="w-full h-full object-cover opacity-80" alt="prev" />}
+                      <div className="w-16 h-16 rounded-lg bg-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
+                        {file && (file.type === 'application/pdf' ? (
+                          <FileType className="w-8 h-8 text-zinc-400" />
+                        ) : (
+                          <img src={URL.createObjectURL(file)} className="w-full h-full object-cover opacity-80" alt="prev" />
+                        ))}
                       </div>
                       <div className="text-left overflow-hidden">
                         <p className="text-sm font-medium text-white truncate w-full" title={file?.name}>{file?.name}</p>
@@ -146,7 +150,7 @@ function App() {
                     onClick={handleDownload}
                     className="w-full py-5 bg-gradient-to-r from-green-500 to-emerald-400 text-white text-lg font-black tracking-wide rounded-xl flex items-center justify-center gap-3 hover:scale-[1.02] hover:shadow-green-500/50 transition-all shadow-xl shadow-green-500/30 active:scale-[0.98] animate-pulse-subtle border border-green-400/50"
                   >
-                    <Download className="w-6 h-6 stroke-[3] text-white" /> DOWNLOAD CLEAN IMAGE
+                    <Download className="w-6 h-6 stroke-[3] text-white" /> DOWNLOAD CLEAN FILE
                   </button>
                   <button
                     onClick={handleReset}

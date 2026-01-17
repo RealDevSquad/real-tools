@@ -26,10 +26,10 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onFileSelect, isPr
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith('image/') || file.type === 'application/pdf') {
         onFileSelect(file);
       } else {
-        alert('Please upload an image file.');
+        alert('Please upload an image or PDF file.');
       }
     }
   }, [onFileSelect]);
@@ -66,7 +66,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onFileSelect, isPr
           <input
             type="file"
             className="hidden"
-            accept="image/*"
+            accept="image/*,application/pdf"
             onChange={handleChange}
             disabled={isProcessing}
           />
@@ -109,17 +109,17 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onFileSelect, isPr
                   <Upload className="w-10 h-10 text-violet-300 group-hover:scale-110 transition-transform duration-300" />
                 </div>
                 <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400 mb-2">
-                  Drop your image here
+                  Drop your image or PDF here
                 </h3>
                 <p className="text-zinc-400 mb-6">
                   or <span className="text-violet-400 underline decoration-violet-400/30 underline-offset-4 group-hover:text-violet-300">browse files</span>
                 </p>
                 <div className="flex items-center gap-4 text-xs text-zinc-500 uppercase tracking-wider font-medium">
                   <span className="flex items-center gap-1.5 bg-zinc-800/50 px-3 py-1.5 rounded-full border border-zinc-700/50">
-                    <FileImage className="w-3.5 h-3.5" /> All Formats
+                    <FileImage className="w-3.5 h-3.5" /> JPEG, PNG, PDF
                   </span>
                   <span className="flex items-center gap-1.5 bg-zinc-800/50 px-3 py-1.5 rounded-full border border-zinc-700/50">
-                    <ShieldCheck className="w-3.5 h-3.5" /> We don't store your image
+                    <ShieldCheck className="w-3.5 h-3.5" /> We don't store your files
                   </span>
                 </div>
               </motion.div>
