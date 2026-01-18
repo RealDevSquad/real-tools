@@ -644,6 +644,7 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<ToolTab>(getInitialTab);
   const contentRef = useRef<HTMLDivElement>(null);
+  const toolsGridRef = useRef<HTMLDivElement>(null);
 
   // Track if this is the initial mount to avoid updating URL on first render
   const isInitialMount = useRef(true);
@@ -718,8 +719,55 @@ export default function App() {
     setActiveTab(tab);
   };
 
+  const handleLogoClick = () => {
+    if (activeTab !== 'home') {
+      setActiveTab('home');
+      // Scroll to top first, then to tools grid after a short delay
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        if (toolsGridRef.current) {
+          toolsGridRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          });
+        }
+      }, 300);
+    } else {
+      // Already on home, just scroll to tools grid
+      if (toolsGridRef.current) {
+        toolsGridRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start',
+          inline: 'nearest'
+        });
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center py-12 md:py-20 px-4 relative overflow-hidden selection:bg-primary/30 font-sans">
+      {/* Fixed Logo - Always Visible */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleLogoClick}
+        className="fixed top-4 left-4 z-50 flex items-center gap-2 px-4 py-2 rounded-lg bg-card/80 backdrop-blur-md border border-border shadow-lg hover:shadow-xl transition-all duration-200 hover:bg-card/90 group cursor-pointer"
+        aria-label="Go to home"
+      >
+        <div className="relative">
+          <IconShield className="w-6 h-6 text-primary group-hover:rotate-12 transition-transform duration-200" strokeWidth={2.5} />
+          <motion.div
+            className="absolute inset-0 bg-primary/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        </div>
+        <span className="font-bold text-sm text-foreground hidden sm:inline">Privacy Tools</span>
+      </motion.button>
+
       {/* Background Glows */}
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
@@ -743,7 +791,7 @@ export default function App() {
         </p>
 
         {/* Feature Cards - Responsive Grid Design */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5 mb-12 max-w-7xl mx-auto w-full px-4">
+        <div ref={toolsGridRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5 mb-12 max-w-7xl mx-auto w-full px-4">
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
