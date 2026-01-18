@@ -69,7 +69,7 @@ export const IPAddressTools = () => {
       // Client-side IP parsing
       const isIPv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(ip);
       const parsed = isIPv4 ? parseIPv4(ip) : null;
-      
+
       // Try to get geolocation (using a free API)
       let geoData = null;
       try {
@@ -124,143 +124,137 @@ export const IPAddressTools = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-2">
-            <IconWorld className="w-8 h-8 text-primary" />
+    <div className="w-full max-w-4xl mx-auto py-8">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-secondary/30 rounded-2xl mb-2">
+            <IconWorld className="w-8 h-8 text-foreground/60" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            IP Address Tools
+          <h1 className="text-4xl font-black tracking-tight text-foreground">
+            Network Utility
           </h1>
-          <p className="text-muted-foreground">IP lookup, subnet calculator, and IP range checker</p>
+          <p className="text-[15px] text-foreground/40 font-medium">Professional IP analysis and subnet calculations.</p>
         </div>
 
-        <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">IP Address</label>
-            <div className="flex gap-2">
+        <div className="apple-card p-10 bg-secondary/20 border-border/40 space-y-8">
+          <div className="space-y-4">
+            <label className="text-[13px] font-black uppercase tracking-widest text-foreground/40">Target IP Address</label>
+            <div className="flex flex-col sm:flex-row gap-3">
               <input
                 type="text"
                 value={ip}
                 onChange={(e) => setIp(e.target.value)}
                 placeholder="192.168.1.1 or 2001:0db8::1"
-                className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
+                className="flex-1 h-14 px-5 bg-background border border-border/40 rounded-2xl focus:outline-none focus:ring-1 focus:ring-foreground/20 font-mono text-[14px]"
               />
-              <button
-                onClick={handleLookup}
-                disabled={loading || !ip.trim()}
-                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Lookup
-              </button>
-              <button
-                onClick={handleSubnetCalc}
-                disabled={!ip.trim()}
-                className="px-6 py-2 bg-secondary text-foreground rounded-lg font-semibold hover:bg-secondary/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Subnet Calc
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleLookup}
+                  disabled={loading || !ip.trim()}
+                  className="px-8 h-14 bg-foreground text-background rounded-2xl font-black text-[14px] hover:opacity-90 active:scale-95 transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Lookup
+                </button>
+                <button
+                  onClick={handleSubnetCalc}
+                  disabled={!ip.trim()}
+                  className="px-6 h-14 bg-secondary/40 text-foreground rounded-2xl font-bold text-[14px] hover:bg-secondary/60 active:scale-95 transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer border border-border/30"
+                >
+                  Subnet
+                </button>
+              </div>
             </div>
           </div>
 
           {result && (
-            <div className="space-y-4">
-              <div className="bg-background border border-border rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold">IP Information</h3>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="space-y-6"
+            >
+              <div className="apple-card p-8 bg-background border-border/30 space-y-6 shadow-sm">
+                <div className="flex items-center justify-between border-b border-border/10 pb-4">
+                  <h3 className="text-[14px] font-black uppercase tracking-widest text-foreground/60">Analysis Result</h3>
                   <button
                     onClick={() => handleCopy(JSON.stringify(result, null, 2))}
-                    className="p-1.5 hover:bg-muted rounded-lg transition-colors cursor-pointer"
-                    title="Copy"
+                    className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-xl transition-all cursor-pointer"
+                    title="Copy JSON"
                   >
-                    <IconCopy className="w-4 h-4" />
+                    <IconCopy size={18} />
                   </button>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">IP Address:</span>
-                    <span className="ml-2 font-mono">{result.ip}</span>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">ADDRESS</p>
+                    <p className="font-mono text-[16px] font-bold text-foreground">{result.ip}</p>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Type:</span>
-                    <span className="ml-2 font-mono">{result.type}</span>
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">PROTOCOL</p>
+                    <p className="font-mono text-[14px] font-bold text-foreground">{result.type}</p>
                   </div>
-                  
+
                   {result.parsed && (
                     <>
-                      <div>
-                        <span className="text-muted-foreground">Binary:</span>
-                        <span className="ml-2 font-mono">{result.parsed.binary}</span>
+                      <div className="space-y-1 md:col-span-2">
+                        <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">BINARY REPRESENTATION</p>
+                        <p className="font-mono text-[13px] font-bold text-foreground break-all">{result.parsed.binary}</p>
                       </div>
-                      <div>
-                        <span className="text-muted-foreground">Hexadecimal:</span>
-                        <span className="ml-2 font-mono">{result.parsed.hex}</span>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">HEXADECIMAL</p>
+                        <p className="font-mono text-[14px] font-bold text-foreground uppercase">{result.parsed.hex}</p>
                       </div>
                     </>
                   )}
 
                   {result.geo && (
                     <>
-                      {result.geo.city && (
-                        <div>
-                          <span className="text-muted-foreground">City:</span>
-                          <span className="ml-2">{result.geo.city}</span>
-                        </div>
-                      )}
-                      {result.geo.region && (
-                        <div>
-                          <span className="text-muted-foreground">Region:</span>
-                          <span className="ml-2">{result.geo.region}</span>
-                        </div>
-                      )}
-                      {result.geo.country_name && (
-                        <div>
-                          <span className="text-muted-foreground">Country:</span>
-                          <span className="ml-2">{result.geo.country_name}</span>
-                        </div>
-                      )}
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">LOCATION</p>
+                        <p className="text-[14px] font-bold text-foreground">
+                          {[result.geo.city, result.geo.region, result.geo.country_name].filter(Boolean).join(', ')}
+                        </p>
+                      </div>
                       {result.geo.org && (
-                        <div>
-                          <span className="text-muted-foreground">ISP:</span>
-                          <span className="ml-2">{result.geo.org}</span>
+                        <div className="space-y-1">
+                          <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">ISP / ORGANIZATION</p>
+                          <p className="text-[14px] font-bold text-foreground">{result.geo.org}</p>
                         </div>
                       )}
                     </>
                   )}
 
                   {result.subnet && (
-                    <>
-                      <div>
-                        <span className="text-muted-foreground">Network:</span>
-                        <span className="ml-2 font-mono">{result.subnet.network}</span>
+                    <div className="md:col-span-2 grid grid-cols-2 gap-y-6 pt-4 border-t border-border/10">
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">NETWORK</p>
+                        <p className="font-mono text-[14px] font-bold text-foreground">{result.subnet.network}</p>
                       </div>
-                      <div>
-                        <span className="text-muted-foreground">Broadcast:</span>
-                        <span className="ml-2 font-mono">{result.subnet.broadcast}</span>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">BROADCAST</p>
+                        <p className="font-mono text-[14px] font-bold text-foreground">{result.subnet.broadcast}</p>
                       </div>
-                      <div>
-                        <span className="text-muted-foreground">Subnet Mask:</span>
-                        <span className="ml-2 font-mono">{result.subnet.subnetMask}</span>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">SUBNET MASK</p>
+                        <p className="font-mono text-[14px] font-bold text-foreground">{result.subnet.subnetMask}</p>
                       </div>
-                      <div>
-                        <span className="text-muted-foreground">Host Count:</span>
-                        <span className="ml-2 font-mono">{result.subnet.hostCount}</span>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">USABLE HOSTS</p>
+                        <p className="font-mono text-[14px] font-bold text-foreground">{result.subnet.hostCount.toLocaleString()}</p>
                       </div>
-                      <div>
-                        <span className="text-muted-foreground">First Host:</span>
-                        <span className="ml-2 font-mono">{result.subnet.firstHost}</span>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">RANGE START</p>
+                        <p className="font-mono text-[14px] font-bold text-foreground">{result.subnet.firstHost}</p>
                       </div>
-                      <div>
-                        <span className="text-muted-foreground">Last Host:</span>
-                        <span className="ml-2 font-mono">{result.subnet.lastHost}</span>
+                      <div className="space-y-1">
+                        <p className="text-[11px] font-black text-foreground/30 uppercase tracking-tighter">RANGE END</p>
+                        <p className="font-mono text-[14px] font-bold text-foreground">{result.subnet.lastHost}</p>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </motion.div>

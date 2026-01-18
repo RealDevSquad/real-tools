@@ -1,18 +1,33 @@
 import { useState, useRef, useEffect } from 'react';
 import Draggable, { type DraggableData, type DraggableEvent } from 'react-draggable';
 import { motion } from 'framer-motion';
-import { Type, CheckSquare, Trash2, Download, Plus, AlignLeft, CircleDot, ChevronDown, PenTool, List, ListOrdered, Lock } from 'lucide-react';
+import {
+  IconTypography as Type,
+  IconCheck as CheckSquare,
+  IconTrash as Trash2,
+  IconDownload as Download,
+  IconPlus as Plus,
+  IconAlignLeft as AlignLeft,
+  IconCircleDot as CircleDot,
+  IconChevronDown as ChevronDown,
+  IconEdit as PenTool,
+  IconList as List,
+  IconListNumbers as ListOrdered,
+  IconLock as Lock,
+  IconRefresh,
+  IconFileText
+} from '@tabler/icons-react';
 import { generateFormPDF, makePDFReadonly, type FormField } from '../../utils/pdfFormGenerator';
 
-const DraggableFieldItem = ({ 
-  field, 
-  onDragStop, 
-  onUpdateLabel, 
+const DraggableFieldItem = ({
+  field,
+  onDragStop,
+  onUpdateLabel,
   onRemove,
   onResize,
   onUpdateOptions
-}: { 
-  field: FormField, 
+}: {
+  field: FormField,
   onDragStop: (id: string, e: DraggableEvent, data: DraggableData) => void,
   onUpdateLabel: (id: string, label: string) => void,
   onRemove: (id: string) => void,
@@ -25,40 +40,40 @@ const DraggableFieldItem = ({
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
-        inputRef.current.focus();
+      inputRef.current.focus();
     }
   }, [isEditing]);
 
   const handleResizeMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent drag start
     e.preventDefault();
-    
+
     const startX = e.clientX;
     const startY = e.clientY;
     const startWidth = field.width;
     const startHeight = field.height;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-        const deltaX = moveEvent.clientX - startX;
-        const deltaY = moveEvent.clientY - startY;
-        
-        let newWidth = Math.max(20, startWidth + deltaX);
-        let newHeight = Math.max(20, startHeight + deltaY);
-        
-        // Constrain checkbox/radio to keep aspect ratio or fixed size if preferred
-        if (field.type === 'checkbox' || field.type === 'radio') {
-             // Optional: keep square
-             const maxDim = Math.max(newWidth, newHeight);
-             newWidth = maxDim;
-             newHeight = maxDim;
-        }
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
 
-        onResize(field.id, newWidth, newHeight);
+      let newWidth = Math.max(20, startWidth + deltaX);
+      let newHeight = Math.max(20, startHeight + deltaY);
+
+      // Constrain checkbox/radio to keep aspect ratio or fixed size if preferred
+      if (field.type === 'checkbox' || field.type === 'radio') {
+        // Optional: keep square
+        const maxDim = Math.max(newWidth, newHeight);
+        newWidth = maxDim;
+        newHeight = maxDim;
+      }
+
+      onResize(field.id, newWidth, newHeight);
     };
 
     const handleMouseUp = () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -74,14 +89,14 @@ const DraggableFieldItem = ({
       onStart={() => isEditing ? false : undefined} // Prevent dragging while editing text
       cancel=".no-drag"
     >
-      <div 
+      <div
         ref={nodeRef}
         className={`absolute group ${isEditing ? 'cursor-text' : 'cursor-move'}`}
         style={{ width: field.width, height: field.height }} // Use height here too for box container
         onDoubleClick={(e) => {
-            e.preventDefault(); // Prevent text selection
-            e.stopPropagation(); // Prevent bubbling issues
-            setIsEditing(true);
+          e.preventDefault(); // Prevent text selection
+          e.stopPropagation(); // Prevent bubbling issues
+          setIsEditing(true);
         }}
       >
         {/* Field Label Input - Positioned above the box */}
@@ -103,107 +118,107 @@ const DraggableFieldItem = ({
           {field.type === 'radio' && <CircleDot className="w-4 h-4 text-zinc-400 pointer-events-none" />}
           {field.type === 'dropdown' && (
             isEditing ? (
-                <textarea
-                    ref={inputRef as any}
-                    defaultValue={field.options?.join('\n') || ''}
-                    onBlur={(e) => {
-                        const lines = e.target.value.split('\n').filter(line => line.trim() !== '');
-                        onUpdateOptions(field.id, lines.length > 0 ? lines : ['Option 1', 'Option 2']);
-                        setIsEditing(false);
-                    }}
-                    onKeyDown={(e) => {
-                        e.stopPropagation();
-                    }}
-                    onDoubleClick={(e) => e.stopPropagation()}
-                    placeholder="Enter options, one per line"
-                    className="absolute inset-0 w-full h-full min-h-[60px] bg-white text-xs text-black p-1 resize-none z-50 border border-blue-500 rounded no-drag"
-                    style={{ height: 'auto', minHeight: '100%' }}
-                />
+              <textarea
+                ref={inputRef as any}
+                defaultValue={field.options?.join('\n') || ''}
+                onBlur={(e) => {
+                  const lines = e.target.value.split('\n').filter(line => line.trim() !== '');
+                  onUpdateOptions(field.id, lines.length > 0 ? lines : ['Option 1', 'Option 2']);
+                  setIsEditing(false);
+                }}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onDoubleClick={(e) => e.stopPropagation()}
+                placeholder="Enter options, one per line"
+                className="absolute inset-0 w-full h-full min-h-[60px] bg-white text-xs text-black p-1 resize-none z-50 border border-blue-500 rounded no-drag"
+                style={{ height: 'auto', minHeight: '100%' }}
+              />
             ) : (
-                <div className="flex items-center justify-between w-full px-2">
-                    <span className="text-xs text-zinc-400 pointer-events-none truncate">
-                        {field.options && field.options.length > 0 ? field.options[0] : 'Select'}
-                        {field.options && field.options.length > 1 && <span className="text-[10px] ml-1 opacity-50">+{field.options.length - 1}</span>}
-                    </span>
-                    <ChevronDown className="w-3 h-3 text-zinc-400" />
-                </div>
+              <div className="flex items-center justify-between w-full px-2">
+                <span className="text-xs text-zinc-400 pointer-events-none truncate">
+                  {field.options && field.options.length > 0 ? field.options[0] : 'Select'}
+                  {field.options && field.options.length > 1 && <span className="text-[10px] ml-1 opacity-50">+{field.options.length - 1}</span>}
+                </span>
+                <ChevronDown className="w-3 h-3 text-zinc-400" />
+              </div>
             )
           )}
           {/* Lists (Unordered & Ordered) - Reusing Textarea Editor Logic */}
           {(field.type === 'ul' || field.type === 'ol') && (
             isEditing ? (
-                <textarea
-                    ref={inputRef as any}
-                    defaultValue={field.options?.join('\n') || ''}
-                    onBlur={(e) => {
-                        const lines = e.target.value.split('\n').filter(line => line.trim() !== '');
-                        onUpdateOptions(field.id, lines.length > 0 ? lines : ['Item 1', 'Item 2']);
-                        setIsEditing(false);
-                    }}
-                    onKeyDown={(e) => {
-                        e.stopPropagation();
-                    }}
-                    onDoubleClick={(e) => e.stopPropagation()}
-                    placeholder="Enter list items, one per line"
-                    className="absolute inset-0 w-full h-full bg-white text-xs text-black p-1 resize-none z-50 border border-blue-500 rounded no-drag"
-                    style={{ height: 'auto', minHeight: '100%' }}
-                />
+              <textarea
+                ref={inputRef as any}
+                defaultValue={field.options?.join('\n') || ''}
+                onBlur={(e) => {
+                  const lines = e.target.value.split('\n').filter(line => line.trim() !== '');
+                  onUpdateOptions(field.id, lines.length > 0 ? lines : ['Item 1', 'Item 2']);
+                  setIsEditing(false);
+                }}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onDoubleClick={(e) => e.stopPropagation()}
+                placeholder="Enter list items, one per line"
+                className="absolute inset-0 w-full h-full bg-white text-xs text-black p-1 resize-none z-50 border border-blue-500 rounded no-drag"
+                style={{ height: 'auto', minHeight: '100%' }}
+              />
             ) : (
-                <div className="w-full h-full p-2 overflow-hidden">
-                    {field.type === 'ul' ? (
-                        <ul className="list-disc list-inside text-xs text-black">
-                            {field.options && field.options.map((opt, i) => (
-                                <li key={i} className="truncate">{opt}</li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <ol className="list-decimal list-inside text-xs text-black">
-                            {field.options && field.options.map((opt, i) => (
-                                <li key={i} className="truncate">{opt}</li>
-                            ))}
-                        </ol>
-                    )}
-                </div>
+              <div className="w-full h-full p-2 overflow-hidden">
+                {field.type === 'ul' ? (
+                  <ul className="list-disc list-inside text-xs text-black">
+                    {field.options && field.options.map((opt, i) => (
+                      <li key={i} className="truncate">{opt}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <ol className="list-decimal list-inside text-xs text-black">
+                    {field.options && field.options.map((opt, i) => (
+                      <li key={i} className="truncate">{opt}</li>
+                    ))}
+                  </ol>
+                )}
+              </div>
             )
           )}
           {field.type === 'signature' && (
-             <div className="flex flex-col items-center justify-center opacity-50">
-                 <PenTool className="w-6 h-6 text-zinc-400" />
-                 <span className="text-[10px] text-zinc-400">Signature</span>
-             </div>
+            <div className="flex flex-col items-center justify-center opacity-50">
+              <PenTool className="w-6 h-6 text-zinc-400" />
+              <span className="text-[10px] text-zinc-400">Signature</span>
+            </div>
           )}
           {field.type === 'label' && (
-             <div className="w-full h-full flex items-center px-1">
-                 {isEditing ? (
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        value={field.label}
-                        onChange={(e) => onUpdateLabel(field.id, e.target.value)}
-                        onBlur={() => setIsEditing(false)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') setIsEditing(false);
-                            e.stopPropagation();
-                        }}
-                        onDoubleClick={(e) => e.stopPropagation()}
-                        className="w-full h-full bg-white text-base text-black border border-blue-500 rounded px-1 focus:ring-0 cursor-text no-drag"
-                    />
-                 ) : (
-                    <span className="text-base font-medium text-black break-words leading-tight">{field.label}</span>
-                 )}
-             </div>
+            <div className="w-full h-full flex items-center px-1">
+              {isEditing ? (
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={field.label}
+                  onChange={(e) => onUpdateLabel(field.id, e.target.value)}
+                  onBlur={() => setIsEditing(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') setIsEditing(false);
+                    e.stopPropagation();
+                  }}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  className="w-full h-full bg-white text-base text-black border border-blue-500 rounded px-1 focus:ring-0 cursor-text no-drag"
+                />
+              ) : (
+                <span className="text-base font-medium text-black break-words leading-tight">{field.label}</span>
+              )}
+            </div>
           )}
-        
+
           {/* Remove Button */}
           <button
             onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onRemove(field.id);
+              e.preventDefault();
+              e.stopPropagation();
+              onRemove(field.id);
             }}
             className="absolute -top-3 -right-3 p-1.5 bg-black text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:scale-110 no-drag z-20 cursor-pointer"
             title="Remove Field"
-            onMouseDown={(e) => e.stopPropagation()} 
+            onMouseDown={(e) => e.stopPropagation()}
             onMouseUp={(e) => e.stopPropagation()}
             onDoubleClick={(e) => e.stopPropagation()}
           >
@@ -211,14 +226,14 @@ const DraggableFieldItem = ({
           </button>
 
           {/* Resize Handle */}
-          <div 
-             className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize no-drag z-30 flex items-end justify-end p-1 opacity-50 hover:opacity-100 transition-opacity"
-             onMouseDown={handleResizeMouseDown}
+          <div
+            className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize no-drag z-30 flex items-end justify-end p-1 opacity-50 hover:opacity-100 transition-opacity"
+            onMouseDown={handleResizeMouseDown}
           >
-             {/* Standard Resize Grip Visual (Diagonal Lines) */}
-             <svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 6L6 0L0 6H6Z" fill="currentColor" className="text-zinc-400"/>
-             </svg>
+            {/* Standard Resize Grip Visual (Diagonal Lines) */}
+            <svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 6L6 0L0 6H6Z" fill="currentColor" className="text-zinc-400" />
+            </svg>
           </div>
         </div>
       </div>
@@ -231,8 +246,7 @@ export const FormBuilder = () => {
   const [loading, setLoading] = useState(false);
   const [readonlyLoading, setReadonlyLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Ref to canvas to calculate bounds if needed, currently using fixed size 595x842 (A4 scale)
+
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const addField = (type: FormField['type']) => {
@@ -241,97 +255,79 @@ export const FormBuilder = () => {
     let label = 'New Field';
 
     if (type === 'checkbox' || type === 'radio') {
-        width = 20;
-        height = 20;
-        label = type === 'checkbox' ? 'Checkbox' : 'Radio Button';
+      width = 24;
+      height = 24;
+      label = type === 'checkbox' ? 'Checkbox' : 'Radio Button';
     } else if (type === 'textarea') {
-        height = 80;
-        label = 'Text Area';
+      height = 80;
+      label = 'Text Area';
     } else if (type === 'signature') {
-        width = 150;
-        height = 60;
-        label = 'Signature';
+      width = 160;
+      height = 64;
+      label = 'Signature';
     } else if (type === 'dropdown') {
-        label = 'Dropdown';
+      label = 'Dropdown';
     } else if (type === 'label') {
-        width = 150;
-        height = 30;
-        label = 'Double click to edit text';
+      width = 150;
+      height = 32;
+      label = 'Double click to edit text';
     } else if (type === 'ul' || type === 'ol') {
-        width = 200;
-        height = 100;
-        label = type === 'ul' ? 'Bullet List' : 'Numbered List';
+      width = 200;
+      height = 100;
+      label = type === 'ul' ? 'Bullet List' : 'Numbered List';
     }
 
-    // Smart positioning: Find the best position that doesn't overlap
     const pageWidth = 595;
     const pageHeight = 842;
-    const padding = 20;
-    const spacing = 15; // Space between fields
-    
+    const padding = 40;
+    const spacing = 16;
+
     let newX = padding;
     let newY = padding;
-    
+
     if (fields.length > 0) {
-      // Find the bottom-most point of all existing fields
       let maxBottom = 0;
       let rightmostRight = 0;
-      
+
       fields.forEach(field => {
         const bottom = field.y + field.height;
         const right = field.x + field.width;
-        if (bottom > maxBottom) {
-          maxBottom = bottom;
-        }
-        if (right > rightmostRight) {
-          rightmostRight = right;
-        }
+        if (bottom > maxBottom) maxBottom = bottom;
+        if (right > rightmostRight) rightmostRight = right;
       });
-      
-      // Try placing below the bottom-most field
+
       newY = maxBottom + spacing;
-      
-      // If it would go outside page bounds, try a new column
+
       if (newY + height > pageHeight - padding) {
-        // Start a new column on the right
         newX = rightmostRight + spacing;
         newY = padding;
-        
-        // If new column would go outside, wrap to top and find empty space
+
         if (newX + width > pageWidth - padding) {
           newX = padding;
           newY = padding;
-          
-          // Find an empty spot by checking for overlaps
+
           let foundPosition = false;
           let attempts = 0;
           const maxAttempts = 50;
-          
+
           while (!foundPosition && attempts < maxAttempts) {
             let hasOverlap = false;
-            
-            // Check if this position overlaps with any existing field
             for (const field of fields) {
               const overlapX = !(newX + width + spacing <= field.x || newX >= field.x + field.width + spacing);
               const overlapY = !(newY + height + spacing <= field.y || newY >= field.y + field.height + spacing);
-              
               if (overlapX && overlapY) {
                 hasOverlap = true;
                 break;
               }
             }
-            
             if (!hasOverlap && newX + width <= pageWidth - padding && newY + height <= pageHeight - padding) {
               foundPosition = true;
             } else {
-              // Try next position: move right, then wrap to next row
               newX += width + spacing;
               if (newX + width > pageWidth - padding) {
                 newX = padding;
                 newY += height + spacing;
-                if (newY + height > pageHeight - padding) {
-                  newY = padding;
-                }
+                if (newY + height > pageHeight - padding) newY = padding;
               }
             }
             attempts++;
@@ -362,7 +358,7 @@ export const FormBuilder = () => {
   };
 
   const updateFieldOptions = (id: string, options: string[]) => {
-      setFields(fields.map(f => f.id === id ? { ...f, options } : f));
+    setFields(fields.map(f => f.id === id ? { ...f, options } : f));
   };
 
   const removeField = (id: string) => {
@@ -388,8 +384,6 @@ export const FormBuilder = () => {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to generate PDF', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to generate PDF: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -397,10 +391,7 @@ export const FormBuilder = () => {
 
   const handleMakeReadonly = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || file.type !== 'application/pdf') {
-      alert('Please select a valid PDF file');
-      return;
-    }
+    if (!file || file.type !== 'application/pdf') return;
 
     setReadonlyLoading(true);
     try {
@@ -415,180 +406,110 @@ export const FormBuilder = () => {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to make PDF readonly', error);
-      alert('Failed to make PDF readonly. Please ensure the PDF is valid.');
     } finally {
       setReadonlyLoading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="w-full max-w-6xl mx-auto flex flex-col md:flex-row gap-6 p-4"
+      className="w-full flex flex-col lg:flex-row gap-8 min-h-[calc(100vh-140px)]"
     >
-      {/* Sidebar / Toolbox */}
-      <div className="md:w-64 flex flex-col gap-4">
-        <div className="bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/50 rounded-2xl shadow-xl p-6">
-          <h3 className="text-xl font-bold text-white mb-4">Form Builder Toolbox</h3>
-          <p className="text-xs text-zinc-400 mb-4">Drag and drop fields to build your interactive PDF form. Click items below to add them to the canvas.</p>
-          <div className="space-y-3">
-             <button
-              onClick={() => addField('label')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/30 transition-colors text-left group cursor-pointer"
-            >
-              <div className="p-2 bg-zinc-700/50 text-white rounded-md group-hover:scale-110 transition-transform">
-                <Type className="w-5 h-5" />
-              </div>
-              <span className="text-white font-medium">Text Label</span>
-              <Plus className="w-4 h-4 ml-auto text-zinc-400 group-hover:text-white transition-colors" />
-            </button>
-
-            <button
-              onClick={() => addField('text')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/30 transition-colors text-left group cursor-pointer"
-            >
-              <div className="p-2 bg-zinc-700/50 text-white rounded-md group-hover:scale-110 transition-transform">
-                <Type className="w-5 h-5" />
-              </div>
-              <span className="text-white font-medium">Text Input</span>
-              <Plus className="w-4 h-4 ml-auto text-zinc-400 group-hover:text-white transition-colors" />
-            </button>
-
-            <button
-              onClick={() => addField('textarea')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/30 transition-colors text-left group cursor-pointer"
-            >
-              <div className="p-2 bg-zinc-700/50 text-white rounded-md group-hover:scale-110 transition-transform">
-                <AlignLeft className="w-5 h-5" />
-              </div>
-              <span className="text-white font-medium">Text Area</span>
-              <Plus className="w-4 h-4 ml-auto text-zinc-400 group-hover:text-white transition-colors" />
-            </button>
-
-            <button
-              onClick={() => addField('checkbox')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/30 transition-colors text-left group cursor-pointer"
-            >
-              <div className="p-2 bg-zinc-700/50 text-white rounded-md group-hover:scale-110 transition-transform">
-                <CheckSquare className="w-5 h-5" />
-              </div>
-              <span className="text-white font-medium">Checkbox</span>
-              <Plus className="w-4 h-4 ml-auto text-zinc-400 group-hover:text-white transition-colors" />
-            </button>
-
-            <button
-              onClick={() => addField('radio')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/30 transition-colors text-left group cursor-pointer"
-            >
-              <div className="p-2 bg-zinc-700/50 text-white rounded-md group-hover:scale-110 transition-transform">
-                <CircleDot className="w-5 h-5" />
-              </div>
-              <span className="text-white font-medium">Radio Button</span>
-              <Plus className="w-4 h-4 ml-auto text-zinc-400 group-hover:text-white transition-colors" />
-            </button>
-
-            <button
-              onClick={() => addField('dropdown')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/30 transition-colors text-left group cursor-pointer"
-            >
-              <div className="p-2 bg-zinc-700/50 text-white rounded-md group-hover:scale-110 transition-transform">
-                <ChevronDown className="w-5 h-5" />
-              </div>
-              <span className="text-white font-medium">Dropdown</span>
-              <Plus className="w-4 h-4 ml-auto text-zinc-400 group-hover:text-white transition-colors" />
-            </button>
-
-            <button
-              onClick={() => addField('ul')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/30 transition-colors text-left group cursor-pointer"
-            >
-              <div className="p-2 bg-zinc-700/50 text-white rounded-md group-hover:scale-110 transition-transform">
-                <List className="w-5 h-5" />
-              </div>
-              <span className="text-white font-medium">Bullet List</span>
-              <Plus className="w-4 h-4 ml-auto text-zinc-400 group-hover:text-white transition-colors" />
-            </button>
-
-            <button
-              onClick={() => addField('ol')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/30 transition-colors text-left group cursor-pointer"
-            >
-              <div className="p-2 bg-zinc-700/50 text-white rounded-md group-hover:scale-110 transition-transform">
-                <ListOrdered className="w-5 h-5" />
-              </div>
-              <span className="text-white font-medium">Numbered List</span>
-              <Plus className="w-4 h-4 ml-auto text-zinc-400 group-hover:text-white transition-colors" />
-            </button>
-
-            <button
-              onClick={() => addField('signature')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/30 transition-colors text-left group cursor-pointer"
-            >
-              <div className="p-2 bg-zinc-700/50 text-white rounded-md group-hover:scale-110 transition-transform">
-                <PenTool className="w-5 h-5" />
-              </div>
-              <span className="text-white font-medium">Signature Panel</span>
-              <Plus className="w-4 h-4 ml-auto text-zinc-400 group-hover:text-white transition-colors" />
-            </button>
+      {/* Toolbox Section */}
+      <div className="lg:w-80 flex flex-col gap-6 shrink-0">
+        <div className="apple-card p-6 flex flex-col h-full bg-secondary/20 border-border/40">
+          <div className="mb-6">
+            <h3 className="text-[20px] font-bold tracking-tight text-foreground mb-2">Form Toolbox</h3>
+            <p className="text-[13px] text-foreground/50 font-medium leading-relaxed">
+              Drag elements onto the canvas to construct professional interactive forms.
+            </p>
           </div>
-        </div>
 
-        <div className="bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/50 rounded-2xl shadow-xl p-6 mt-auto space-y-3">
-          <button
-            onClick={handleExport}
-            disabled={fields.length === 0 || loading}
-            className="w-full py-4 bg-white text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-white/10 cursor-pointer"
-          >
-             {loading ? 'Generating...' : (
-               <>
-                 <Download className="w-5 h-5" /> Export PDF
-               </>
-             )}
-          </button>
-          
-          <div className="relative">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={handleMakeReadonly}
-              className="hidden"
-              id="pdf-readonly-input"
-            />
-            <label
-              htmlFor="pdf-readonly-input"
-              className={`w-full py-4 bg-zinc-800 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-zinc-700 transition-colors cursor-pointer shadow-lg ${
-                readonlyLoading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+          <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2 space-y-2">
+            {[
+              { type: 'label', label: 'Text Label', icon: Type },
+              { type: 'text', label: 'Field Input', icon: Type },
+              { type: 'textarea', label: 'Text Area', icon: AlignLeft },
+              { type: 'checkbox', label: 'Checkbox', icon: CheckSquare },
+              { type: 'radio', label: 'Radio', icon: CircleDot },
+              { type: 'dropdown', label: 'Dropdown', icon: ChevronDown },
+              { type: 'ul', label: 'Bullet List', icon: List },
+              { type: 'ol', label: 'Ordered List', icon: ListOrdered },
+              { type: 'signature', label: 'Signature', icon: PenTool },
+            ].map((item) => (
+              <button
+                key={item.type}
+                onClick={() => addField(item.type as any)}
+                className="w-full group flex items-center justify-between p-3 rounded-xl bg-secondary/40 hover:bg-secondary/60 border border-transparent hover:border-border/30 transition-all active:scale-[0.98] cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-foreground/5 group-hover:bg-foreground group-hover:text-background transition-colors">
+                    <item.icon size={18} />
+                  </div>
+                  <span className="text-[14px] font-bold group-hover:text-foreground/90 transition-colors">
+                    {item.label}
+                  </span>
+                </div>
+                <Plus size={16} className="opacity-20 group-hover:opacity-100 transition-opacity" />
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-border/40 space-y-3">
+            <button
+              onClick={handleExport}
+              disabled={fields.length === 0 || loading}
+              className="w-full h-11 bg-foreground text-background font-black rounded-xl text-[14px] flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm cursor-pointer"
             >
-              {readonlyLoading ? (
-                'Processing...'
-              ) : (
+              {loading ? <IconRefresh className="animate-spin" size={18} /> : (
                 <>
-                  <Lock className="w-5 h-5" /> Make PDF Readonly
+                  <Download size={18} />
+                  Export PDF Form
                 </>
               )}
-            </label>
-            <p className="text-xs text-zinc-400 mt-2 text-center">
-              Upload a filled PDF to make it readonly
-            </p>
+            </button>
+
+            <div className="relative">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf"
+                onChange={handleMakeReadonly}
+                className="hidden"
+                id="pdf-readonly-input"
+              />
+              <label
+                htmlFor="pdf-readonly-input"
+                className={`w-full h-11 bg-secondary/40 text-foreground font-bold rounded-xl text-[14px] flex items-center justify-center gap-2 hover:bg-secondary/60 transition-colors cursor-pointer border border-border/30 ${readonlyLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+              >
+                {readonlyLoading ? <IconRefresh className="animate-spin" size={16} /> : (
+                  <>
+                    <Lock size={16} />
+                    Flatten to Readonly
+                  </>
+                )}
+              </label>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Canvas Area */}
-      <div className="flex-1 flex justify-center bg-zinc-100 rounded-2xl border-2 border-dashed border-zinc-300 p-8 overflow-auto min-h-[600px] relative">
-        <div 
+      {/* Canvas Section */}
+      <div className="flex-1 apple-card bg-secondary/5 border-border/20 p-8 flex justify-center overflow-auto custom-scrollbar relative min-h-[800px]">
+        <div
           ref={canvasRef}
-          className="bg-white shadow-2xl relative"
-          style={{ width: '595px', height: '842px' }} // Logic pixel size of A4
+          className="bg-white shadow-2xl relative shrink-0 overflow-hidden ring-1 ring-black/5"
+          style={{ width: '595px', height: '842px', minHeight: '842px' }}
         >
+          {/* Subtle Grid Pattern */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style={{ backgroundImage: 'radial-gradient(#000 0.5px, transparent 0.5px)', backgroundSize: '20px 20px' }} />
+
           {fields.map((field) => (
             <DraggableFieldItem
               key={field.id}
@@ -605,9 +526,10 @@ export const FormBuilder = () => {
 
           {fields.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center text-zinc-400">
-                <p className="text-xl font-bold">A4 Page</p>
-                <p className="text-sm">Click items in the toolbox to add them here.</p>
+              <div className="text-center opacity-20">
+                <IconFileText size={64} className="mx-auto mb-4" strokeWidth={1} />
+                <p className="text-[17px] font-black tracking-tight mb-1">A4 Working Surface</p>
+                <p className="text-[13px] font-medium">Select elements to begin composing</p>
               </div>
             </div>
           )}

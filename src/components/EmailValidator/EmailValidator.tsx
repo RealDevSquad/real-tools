@@ -16,7 +16,7 @@ export const EmailValidator = () => {
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValidFormat = emailRegex.test(email);
-    
+
     if (!isValidFormat) {
       return {
         valid: false,
@@ -27,7 +27,7 @@ export const EmailValidator = () => {
 
     const [local, domain] = email.toLowerCase().split('@');
     const isDisposable = disposableEmailDomains.some(d => domain.includes(d));
-    
+
     const checks = {
       valid: true,
       format: true,
@@ -52,7 +52,7 @@ export const EmailValidator = () => {
       email,
       ...validation,
     });
-    
+
     if (validation.valid && 'disposable' in validation) {
       showToast(validation.disposable ? 'Email validated (disposable detected)' : 'Email validated');
     } else {
@@ -67,103 +67,109 @@ export const EmailValidator = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-2">
-            <IconMail className="w-8 h-8 text-primary" />
+    <div className="w-full max-w-2xl mx-auto py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-10"
+      >
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-secondary/30 rounded-2xl mb-2">
+            <IconMail className="w-8 h-8 text-foreground/60" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Email Validator
+          <h1 className="text-4xl font-black tracking-tight text-foreground">
+            Mail Verifier
           </h1>
-          <p className="text-muted-foreground">Validate email addresses and detect disposable emails</p>
+          <p className="text-[15px] text-foreground/40 font-medium max-w-sm mx-auto leading-relaxed">
+            Verify address syntax and check against a comprehensive list of known disposable providers.
+          </p>
         </div>
 
-        <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">Email Address</label>
-            <div className="flex gap-2">
+        {/* Search Input Area */}
+        <div className="apple-card p-6 bg-secondary/20 border-border/40">
+          <div className="space-y-4">
+            <div className="relative group">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="user@example.com"
-                className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="identity@example.com"
+                className="w-full h-16 pl-6 pr-32 bg-background border border-border/30 rounded-2xl text-[17px] font-bold focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all placeholder:text-foreground/20"
                 onKeyPress={(e) => e.key === 'Enter' && handleValidate()}
               />
               <button
                 onClick={handleValidate}
                 disabled={!email.trim()}
-                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="absolute right-2 top-2 bottom-2 px-6 bg-foreground text-background rounded-xl font-black text-[13px] uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all disabled:opacity-20 cursor-pointer"
               >
-                Validate
+                Inspect
               </button>
             </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.05em] text-foreground/30 px-2">
+              Privacy Guaranteed: No data leaves your machine.
+            </p>
           </div>
+        </div>
 
-          {result && (
-            <div className="bg-background border border-border rounded-xl p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Validation Results</h3>
-                <button
-                  onClick={() => handleCopy(JSON.stringify(result, null, 2))}
-                  className="p-1.5 hover:bg-muted rounded-lg transition-colors cursor-pointer"
-                  title="Copy"
-                >
-                  <IconCopy className="w-4 h-4" />
-                </button>
+        {/* Results Visualization */}
+        {result && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="apple-card overflow-hidden border-border/40"
+          >
+            <div className="p-6 border-b border-border/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${result.valid && !result.disposable ? 'bg-primary' : 'bg-foreground/20'}`} />
+                <h3 className="text-[12px] font-black uppercase tracking-widest text-foreground/60">Analysis Report</h3>
               </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  {result.valid ? (
-                    <IconCheck className="w-5 h-5 text-emerald-500" />
-                  ) : (
-                    <IconX className="w-5 h-5 text-destructive" />
-                  )}
-                  <div>
-                    <span className="font-medium">Format:</span>
-                    <span className={`ml-2 ${result.format ? 'text-emerald-500' : 'text-destructive'}`}>
-                      {result.format ? 'Valid' : 'Invalid'}
-                    </span>
+              <button
+                onClick={() => handleCopy(result.email)}
+                className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all cursor-pointer"
+                title="Copy Email"
+              >
+                <IconCopy size={16} />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-8">
+              {/* Primary Status */}
+              <div className="flex items-center gap-5">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${result.valid && !result.disposable
+                  ? 'bg-emerald-500/10 text-emerald-600'
+                  : result.disposable
+                    ? 'bg-amber-500/10 text-amber-600'
+                    : 'bg-red-500/10 text-red-600'
+                  }`}>
+                  {result.valid && !result.disposable ? <IconCheck size={28} stroke={3} /> : <IconX size={28} stroke={3} />}
+                </div>
+                <div>
+                  <p className="text-[20px] font-black tracking-tight text-foreground">
+                    {result.valid && !result.disposable ? 'Verified Secure' : result.disposable ? 'Caution: Temporary' : 'Invalid Structure'}
+                  </p>
+                  <p className="text-[14px] font-medium text-foreground/40">{result.message}</p>
+                </div>
+              </div>
+
+              {/* Detailed Specs */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                {[
+                  { label: 'Syntax', value: result.format ? 'Correct' : 'Erroneous', ok: result.format },
+                  { label: 'Length', value: result.valid ? 'Optimal' : 'Invalid', ok: result.valid },
+                  { label: 'Disposable', value: result.disposable ? 'Detected' : 'Clean', ok: !result.disposable, warning: result.disposable }
+                ].map((spec, i) => (
+                  <div key={i} className="bg-secondary/20 rounded-2xl p-4 border border-border/10">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground/30 mb-1">{spec.label}</p>
+                    <p className={`text-[15px] font-bold ${spec.warning ? 'text-amber-600' : spec.ok ? 'text-foreground' : 'text-red-500'}`}>
+                      {spec.value}
+                    </p>
                   </div>
-                </div>
-
-                {result.valid && 'local' in result && (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <IconCheck className="w-5 h-5 text-emerald-500" />
-                      <div>
-                        <span className="font-medium">Local Part:</span>
-                        <span className={`ml-2 ${result.local ? 'text-emerald-500' : 'text-destructive'}`}>
-                          {result.local ? 'Valid' : 'Invalid'}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {result.disposable ? (
-                        <IconX className="w-5 h-5 text-amber-500" />
-                      ) : (
-                        <IconCheck className="w-5 h-5 text-emerald-500" />
-                      )}
-                      <div>
-                        <span className="font-medium">Disposable Domain:</span>
-                        <span className={`ml-2 ${result.disposable ? 'text-amber-500' : 'text-emerald-500'}`}>
-                          {result.disposable ? 'Yes (disposable)' : 'No'}
-                        </span>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-                  <p className="text-sm font-medium">{result.message}</p>
-                </div>
+                ))}
               </div>
             </div>
-          )}
-        </div>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   );

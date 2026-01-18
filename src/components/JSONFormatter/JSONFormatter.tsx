@@ -10,7 +10,6 @@ import {
   IconFileText,
 } from '@tabler/icons-react';
 import { formatJSON, minifyJSON, validateJSON, getJSONStats } from '../../utils/jsonFormatter';
-import { Button } from '../ui/stateful-button';
 import { formatBytes } from '../../utils/imageProcessor';
 import { useToast } from '../ui/toast';
 
@@ -20,17 +19,15 @@ export const JSONFormatter = () => {
   const [indent, setIndent] = useState(2);
   const [validation, setValidation] = useState<{ valid: boolean; error?: string } | null>(null);
   const [stats, setStats] = useState<{ size: number; lines: number; keys: number; depth: number } | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const outputTextareaRef = useRef<HTMLTextAreaElement>(null);
   const { showToast } = useToast();
 
   const handleFormat = () => {
-    setError(null);
     setValidation(null);
-    
+
     if (!jsonInput.trim()) {
-      setError('Please enter JSON to format');
+      setValidation({ valid: false, error: 'Please enter JSON to format' });
       return;
     }
 
@@ -43,17 +40,15 @@ export const JSONFormatter = () => {
     } catch (err) {
       const validationResult = validateJSON(jsonInput);
       setValidation(validationResult);
-      setError(err instanceof Error ? err.message : 'Failed to format JSON');
       setFormattedOutput('');
     }
   };
 
   const handleMinify = () => {
-    setError(null);
     setValidation(null);
-    
+
     if (!jsonInput.trim()) {
-      setError('Please enter JSON to minify');
+      setValidation({ valid: false, error: 'Please enter JSON to minify' });
       return;
     }
 
@@ -66,29 +61,23 @@ export const JSONFormatter = () => {
     } catch (err) {
       const validationResult = validateJSON(jsonInput);
       setValidation(validationResult);
-      setError(err instanceof Error ? err.message : 'Failed to minify JSON');
       setFormattedOutput('');
     }
   };
 
   const handleValidate = () => {
-    setError(null);
-    
     if (!jsonInput.trim()) {
-      setError('Please enter JSON to validate');
-      setValidation(null);
+      setValidation({ valid: false, error: 'Please enter JSON to validate' });
       return;
     }
 
     const result = validateJSON(jsonInput);
     setValidation(result);
-    
+
     if (result.valid) {
-      setError(null);
       const jsonStats = getJSONStats(jsonInput);
       setStats(jsonStats);
     } else {
-      setError(result.error || 'Invalid JSON');
       setStats(null);
     }
   };
@@ -114,7 +103,6 @@ export const JSONFormatter = () => {
     setFormattedOutput('');
     setValidation(null);
     setStats(null);
-    setError(null);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +110,7 @@ export const JSONFormatter = () => {
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith('.json') && file.type !== 'application/json') {
-      setError('Please upload a JSON file');
+      setValidation({ valid: false, error: 'Please upload a JSON file' });
       return;
     }
 
@@ -130,16 +118,15 @@ export const JSONFormatter = () => {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       setJsonInput(content);
-      setError(null);
       setValidation(null);
       setFormattedOutput('');
       setStats(null);
     };
     reader.onerror = () => {
-      setError('Failed to read file');
+      setValidation({ valid: false, error: 'Failed to read file' });
     };
     reader.readAsText(file);
-    
+
     // Reset file input
     if (e.target) {
       e.target.value = '';
@@ -147,136 +134,140 @@ export const JSONFormatter = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-8">
+    <div className="w-full max-w-6xl mx-auto py-8">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
+        className="space-y-8"
       >
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            JSON Formatter & Validator
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-secondary/30 rounded-2xl mb-2">
+            <IconCode className="w-8 h-8 text-foreground/60" />
+          </div>
+          <h1 className="text-4xl font-black tracking-tight text-foreground">
+            JSON Utility
           </h1>
-          <p className="text-muted-foreground">
-            Format, validate, and minify JSON. All processing happens locally in your browser.
+          <p className="text-[15px] text-foreground/40 font-medium max-w-lg mx-auto leading-relaxed">
+            Local browser-based JSON transformation. Format, minify, and validate with zero data egress.
           </p>
         </div>
 
-        {/* File Upload */}
-        <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-4">
-          <div className="flex items-center gap-4">
-            <input
-              type="file"
-              accept=".json,application/json"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="json-file-upload"
-            />
-            <label
-              htmlFor="json-file-upload"
-              className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg cursor-pointer transition-colors text-sm font-medium"
-            >
-              <IconFileText className="w-4 h-4" />
-              Upload JSON File
-            </label>
-            {jsonInput && (
-              <button
-                onClick={handleClear}
-                className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 cursor-pointer"
+        {/* Action Toolbar */}
+        <div className="apple-card p-6 bg-secondary/20 border-border/40">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                accept=".json,application/json"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="json-file-upload"
+              />
+              <label
+                htmlFor="json-file-upload"
+                className="flex items-center gap-2 px-5 py-2.5 bg-foreground text-background rounded-xl cursor-pointer hover:opacity-90 active:scale-95 transition-all text-[13px] font-black uppercase tracking-widest"
               >
-                <IconRefresh className="w-4 h-4" />
-                Clear
-              </button>
-            )}
+                <IconFileText size={18} />
+                Import File
+              </label>
+              {jsonInput && (
+                <button
+                  onClick={handleClear}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-secondary/40 text-foreground rounded-xl hover:bg-secondary/60 active:scale-95 transition-all text-[13px] font-bold border border-border/30 cursor-pointer"
+                >
+                  <IconRefresh size={18} />
+                  Reset
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <span className="text-[12px] font-black uppercase tracking-widest text-foreground/40">Indent</span>
+                <div className="flex items-center bg-background border border-border/30 rounded-lg overflow-hidden h-9">
+                  <input
+                    type="number"
+                    min="0"
+                    max="8"
+                    value={indent}
+                    onChange={(e) => setIndent(Math.max(0, Math.min(8, Number(e.target.value))))}
+                    className="w-12 px-2 text-center text-[13px] font-bold focus:outline-none"
+                  />
+                  <div className="px-2 text-[10px] font-black uppercase text-foreground/30 border-l border-border/20 bg-secondary/10 h-full flex items-center">
+                    SP
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Validation Status */}
-        {validation && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-xl border-2 ${
-              validation.valid
-                ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
-                : 'bg-destructive/10 border-destructive/50 text-destructive'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              {validation.valid ? (
-                <>
-                  <IconCheck className="w-5 h-5" />
-                  <span className="font-semibold">Valid JSON</span>
-                </>
-              ) : (
-                <>
-                  <IconX className="w-5 h-5" />
-                  <div className="flex-1">
-                    <span className="font-semibold">Invalid JSON</span>
-                    {validation.error && (
-                      <p className="text-sm mt-1 opacity-90">{validation.error}</p>
-                    )}
+        {/* Validation & Stats Overlay - Only shown when input exists */}
+        {jsonInput && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {validation && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className={`apple-card p-6 border-2 flex items-center gap-4 ${validation.valid
+                  ? 'bg-emerald-500/[0.03] border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-red-500/[0.03] border-red-500/20 text-red-600 dark:text-red-400'
+                  }`}
+              >
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${validation.valid ? 'bg-emerald-500/10' : 'bg-red-500/10'
+                  }`}>
+                  {validation.valid ? <IconCheck size={20} /> : <IconX size={20} />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-black uppercase tracking-widest">
+                    {validation.valid ? 'Syntax Verified' : 'Validation Error'}
+                  </p>
+                  {validation.error && (
+                    <p className="text-[13px] font-medium opacity-80 truncate">{validation.error}</p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {stats && validation?.valid && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="apple-card p-6 border-border/40 grid grid-cols-2 lg:grid-cols-4 gap-4"
+              >
+                {[
+                  { label: 'Payload', value: formatBytes(stats.size) },
+                  { label: 'Count', value: `${stats.keys} keys` },
+                  { label: 'Structure', value: `${stats.depth} deep` },
+                  { label: 'Lines', value: stats.lines },
+                ].map((stat, i) => (
+                  <div key={i} className="space-y-0.5">
+                    <p className="text-[10px] font-black text-foreground/30 uppercase tracking-tighter">{stat.label}</p>
+                    <p className="font-mono text-[14px] font-bold text-foreground">{stat.value}</p>
                   </div>
-                </>
-              )}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Error Message */}
-        {error && !validation && (
-          <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-lg">
-            {error}
+                ))}
+              </motion.div>
+            )}
           </div>
         )}
 
-        {/* Stats */}
-        {stats && validation?.valid && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-3">
-              <p className="text-xs text-muted-foreground mb-1">Size</p>
-              <p className="text-sm font-semibold">{formatBytes(stats.size)}</p>
-            </div>
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-3">
-              <p className="text-xs text-muted-foreground mb-1">Lines</p>
-              <p className="text-sm font-semibold">{stats.lines}</p>
-            </div>
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-3">
-              <p className="text-xs text-muted-foreground mb-1">Keys</p>
-              <p className="text-sm font-semibold">{stats.keys}</p>
-            </div>
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-lg p-3">
-              <p className="text-xs text-muted-foreground mb-1">Depth</p>
-              <p className="text-sm font-semibold">{stats.depth}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Main Editor Interface */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[600px]">
           {/* Input Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <IconCode className="w-5 h-5 text-primary" />
-                JSON Input
-              </h2>
+          <div className="flex flex-col h-full apple-card bg-background border-border/40 overflow-hidden shadow-sm">
+            <div className="flex items-center justify-between px-6 h-14 border-b border-border/10 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-foreground/20" />
+                <h2 className="text-[13px] font-black uppercase tracking-widest text-foreground/60">Raw Material</h2>
+              </div>
               {jsonInput && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleCopy(jsonInput)}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors cursor-pointer"
-                    title="Copy input"
+                    className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all cursor-pointer"
                   >
-                    <IconCopy className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDownload(jsonInput, 'input.json')}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors cursor-pointer"
-                    title="Download input"
-                  >
-                    <IconDownload className="w-4 h-4" />
+                    <IconCopy size={16} />
                   </button>
                 </div>
               )}
@@ -287,38 +278,37 @@ export const JSONFormatter = () => {
               onChange={(e) => {
                 setJsonInput(e.target.value);
                 setValidation(null);
-                setError(null);
                 setFormattedOutput('');
                 setStats(null);
               }}
-              placeholder="Paste your JSON here or upload a JSON file..."
-              className="w-full h-96 px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm resize-none"
+              placeholder="Inject JSON data..."
+              className="flex-1 w-full px-8 py-6 bg-transparent focus:outline-none font-mono text-[14px] leading-relaxed resize-none custom-scrollbar"
               spellCheck={false}
             />
           </div>
 
           {/* Output Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <IconCode className="w-5 h-5 text-primary" />
-                Output
-              </h2>
+          <div className="flex flex-col h-full apple-card bg-secondary/10 border-border/30 overflow-hidden shadow-sm">
+            <div className="flex items-center justify-between px-6 h-14 border-b border-border/10 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+                <h2 className="text-[13px] font-black uppercase tracking-widest text-foreground/60">Refined Output</h2>
+              </div>
               {formattedOutput && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleCopy(formattedOutput)}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors cursor-pointer"
-                    title="Copy output"
+                    className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all cursor-pointer"
+                    title="Copy Result"
                   >
-                    <IconCopy className="w-4 h-4" />
+                    <IconCopy size={16} />
                   </button>
                   <button
-                    onClick={() => handleDownload(formattedOutput, 'formatted.json')}
-                    className="p-2 hover:bg-muted rounded-lg transition-colors cursor-pointer"
-                    title="Download output"
+                    onClick={() => handleDownload(formattedOutput, 'refined.json')}
+                    className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all cursor-pointer"
+                    title="Export Result"
                   >
-                    <IconDownload className="w-4 h-4" />
+                    <IconDownload size={16} />
                   </button>
                 </div>
               )}
@@ -327,47 +317,38 @@ export const JSONFormatter = () => {
               ref={outputTextareaRef}
               value={formattedOutput}
               readOnly
-              placeholder="Formatted or minified JSON will appear here..."
-              className="w-full h-96 px-4 py-3 bg-muted/30 border border-border rounded-xl font-mono text-sm resize-none"
+              placeholder="Awaiting processing..."
+              className="flex-1 w-full px-8 py-6 bg-transparent font-mono text-[14px] leading-relaxed resize-none custom-scrollbar text-foreground/80"
               spellCheck={false}
             />
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <div className="flex-1 flex items-center gap-4">
-              <label className="text-sm font-medium">Indent:</label>
-              <input
-                type="number"
-                min="0"
-                max="8"
-                value={indent}
-                onChange={(e) => setIndent(Math.max(0, Math.min(8, Number(e.target.value))))}
-                className="w-20 px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <span className="text-xs text-muted-foreground">spaces</span>
-            </div>
-            <div className="flex gap-3 flex-wrap">
-              <Button onClick={handleFormat} disabled={!jsonInput.trim()}>
-                <IconCode className="w-4 h-4 mr-2" />
-                Format
-              </Button>
-              <Button onClick={handleMinify} disabled={!jsonInput.trim()}>
-                <IconCode className="w-4 h-4 mr-2" />
-                Minify
-              </Button>
-              <Button onClick={handleValidate} disabled={!jsonInput.trim()}>
-                {validation?.valid ? (
-                  <IconCheck className="w-4 h-4 mr-2" />
-                ) : (
-                  <IconX className="w-4 h-4 mr-2" />
-                )}
-                Validate
-              </Button>
-            </div>
-          </div>
+        {/* Global Process Controls */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <button
+            onClick={handleFormat}
+            disabled={!jsonInput.trim()}
+            className="flex-1 h-16 bg-foreground text-background font-black rounded-2xl text-[16px] flex items-center justify-center gap-3 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-20 disabled:cursor-not-allowed shadow-xl shadow-foreground/5 cursor-pointer"
+          >
+            <IconCode size={20} />
+            Beautify JSON
+          </button>
+          <button
+            onClick={handleMinify}
+            disabled={!jsonInput.trim()}
+            className="flex-1 h-16 bg-secondary text-foreground font-black rounded-2xl text-[16px] flex items-center justify-center gap-3 hover:bg-secondary/80 active:scale-[0.98] transition-all disabled:opacity-20 disabled:cursor-not-allowed border border-border/30 cursor-pointer"
+          >
+            <IconRefresh size={20} className="rotate-90" />
+            Minify (Compact)
+          </button>
+          <button
+            onClick={handleValidate}
+            disabled={!jsonInput.trim()}
+            className="px-10 h-16 bg-secondary/40 text-foreground font-bold rounded-2xl text-[15px] hover:bg-secondary/60 transition-all active:scale-[0.98] border border-border/20 cursor-pointer"
+          >
+            Check Syntax
+          </button>
         </div>
       </motion.div>
     </div>

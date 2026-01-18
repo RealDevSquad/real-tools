@@ -5,14 +5,10 @@ import {
   IconDownload,
   IconTrash,
   IconFileText,
-  IconPlus,
-  IconX,
-  IconCheck,
   IconRefresh,
   IconEye
 } from '@tabler/icons-react';
 import { combinePDFs, removePagesFromPDF, extractPagesFromPDF, getPDFPageCount, addTextToPDF, type TextAnnotation } from '../../utils/pdfEditor';
-import { Button } from '../ui/stateful-button';
 import { PDFPreview } from './PDFPreview';
 
 interface PDFFile {
@@ -28,10 +24,6 @@ export const PDFEditor = () => {
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'combine' | 'remove' | 'extract' | 'edit'>('combine');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [editingAnnotation, setEditingAnnotation] = useState<{
-    fileId: string;
-    annotation: Partial<TextAnnotation>;
-  } | null>(null);
   const [previewFile, setPreviewFile] = useState<PDFFile | null>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,7 +31,7 @@ export const PDFEditor = () => {
     if (!files || files.length === 0) return;
 
     const newFiles: PDFFile[] = [];
-    
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.type === 'application/pdf') {
@@ -224,43 +216,6 @@ export const PDFEditor = () => {
     }
   };
 
-  const addTextAnnotation = (fileId: string) => {
-    const pdfFile = pdfFiles.find(f => f.id === fileId);
-    if (!pdfFile) return;
-
-    setEditingAnnotation({
-      fileId,
-      annotation: {
-        page: 1,
-        text: '',
-        x: 50,
-        y: 50,
-        fontSize: 12,
-        color: { r: 0, g: 0, b: 0 }
-      }
-    });
-  };
-
-  const saveTextAnnotation = () => {
-    if (!editingAnnotation || !editingAnnotation.annotation.text || !editingAnnotation.annotation.page) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    setPdfFiles(pdfFiles.map(f => {
-      if (f.id === editingAnnotation.fileId) {
-        const annotations = f.textAnnotations || [];
-        return {
-          ...f,
-          textAnnotations: [...annotations, editingAnnotation.annotation as TextAnnotation]
-        };
-      }
-      return f;
-    }));
-
-    setEditingAnnotation(null);
-  };
-
   const removeTextAnnotation = (fileId: string, index: number) => {
     setPdfFiles(pdfFiles.map(f => {
       if (f.id === fileId) {
@@ -277,7 +232,6 @@ export const PDFEditor = () => {
   const reset = () => {
     setPdfFiles([]);
     setMode('combine');
-    setEditingAnnotation(null);
   };
 
   return (
@@ -285,58 +239,35 @@ export const PDFEditor = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="w-full max-w-6xl mx-auto"
+      className="w-full max-w-5xl mx-auto space-y-8"
     >
-      <div className="glass-panel p-8">
-        {/* Mode Selection */}
-        <div className="mb-8">
-          <h3 className="text-xl font-bold text-foreground mb-4">PDF Editor</h3>
-          <div className="flex gap-3 flex-wrap">
-            <button
-              onClick={() => setMode('combine')}
-              className={`px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer ${
-                mode === 'combine'
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                  : 'bg-secondary/50 text-muted-foreground hover:bg-secondary'
-              }`}
-            >
-              Combine PDFs
-            </button>
-            <button
-              onClick={() => setMode('remove')}
-              className={`px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer ${
-                mode === 'remove'
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                  : 'bg-secondary/50 text-muted-foreground hover:bg-secondary'
-              }`}
-            >
-              Remove Pages
-            </button>
-            <button
-              onClick={() => setMode('extract')}
-              className={`px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer ${
-                mode === 'extract'
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                  : 'bg-secondary/50 text-muted-foreground hover:bg-secondary'
-              }`}
-            >
-              Extract Pages
-            </button>
-            <button
-              onClick={() => setMode('edit')}
-              className={`px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer ${
-                mode === 'edit'
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                  : 'bg-secondary/50 text-muted-foreground hover:bg-secondary'
-              }`}
-            >
-              Edit Text
-            </button>
+      <div className="apple-card p-10 bg-secondary/20 border-border/40">
+        {/* Apple Style Segmented Control */}
+        <div className="mb-10">
+          <h3 className="text-[22px] font-bold tracking-tight text-foreground mb-6">PDF Master</h3>
+          <div className="inline-flex p-1 bg-foreground/5 rounded-2xl w-full sm:w-auto">
+            {[
+              { id: 'combine', label: 'Combine' },
+              { id: 'remove', label: 'Remove' },
+              { id: 'extract', label: 'Extract' },
+              { id: 'edit', label: 'Annotate' }
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setMode(item.id as any)}
+                className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-[14px] font-bold transition-all cursor-pointer ${mode === item.id
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-foreground/40 hover:text-foreground/60'
+                  }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* File Upload */}
-        <div className="mb-6">
+        {/* Upload Zone */}
+        <div className="mb-8">
           <input
             ref={fileInputRef}
             type="file"
@@ -348,225 +279,98 @@ export const PDFEditor = () => {
           />
           <label
             htmlFor="pdf-upload-input"
-            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border/50 rounded-2xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
+            className="group flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border/30 rounded-[2rem] bg-foreground/[0.02] cursor-pointer hover:bg-foreground/[0.04] hover:border-foreground/20 transition-all active:scale-[0.99]"
           >
-            <IconUpload className="w-8 h-8 text-muted-foreground mb-2" />
-            <span className="text-sm font-semibold text-foreground">
-              {mode === 'combine' ? 'Upload PDFs to Combine' : 'Upload PDF to Edit'}
+            <div className="w-14 h-14 rounded-2xl bg-foreground/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <IconUpload className="w-6 h-6 text-foreground/40 group-hover:text-foreground/80 transition-colors" />
+            </div>
+            <span className="text-[15px] font-bold text-foreground/80">
+              {mode === 'combine' ? 'Add PDF Files' : 'Select PDF Document'}
             </span>
-            <span className="text-xs text-muted-foreground mt-1">
-              {mode === 'combine' ? 'Select multiple PDF files' : 'Select a PDF file'}
+            <span className="text-[13px] text-foreground/40 font-medium mt-1">
+              {mode === 'combine' ? 'Select multiple files to merge' : 'A4, Letter, or custom formats supported'}
             </span>
           </label>
         </div>
 
         {/* File List */}
         {pdfFiles.length > 0 && (
-          <div className="space-y-4 mb-6">
+          <div className="space-y-3 mb-10">
             {pdfFiles.map((pdfFile) => (
               <div
                 key={pdfFile.id}
-                className="p-4 rounded-xl bg-secondary/30 border border-border/50"
+                className="group apple-card p-5 bg-secondary/40 border-border/30 hover:border-foreground/10 transition-all"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-start gap-3 flex-1">
-                    <IconFileText className="w-5 h-5 text-primary mt-0.5" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center shrink-0">
+                      <IconFileText className="w-5 h-5 text-foreground/40" />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground truncate">{pdfFile.file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {pdfFile.pageCount} {pdfFile.pageCount === 1 ? 'page' : 'pages'}
+                      <p className="text-[15px] font-bold text-foreground truncate">{pdfFile.file.name}</p>
+                      <p className="text-[12px] text-foreground/40 font-black uppercase tracking-widest">
+                        {pdfFile.pageCount} {pdfFile.pageCount === 1 ? 'PAGE' : 'PAGES'} • {(pdfFile.file.size / (1024 * 1024)).toFixed(2)} MB
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {(mode === 'remove' || mode === 'extract' || mode === 'edit') && (
                       <button
                         onClick={() => setPreviewFile(pdfFile)}
-                        className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all cursor-pointer"
-                        title="Preview PDF"
+                        className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all cursor-pointer"
+                        title="Quick View"
                       >
                         <IconEye size={18} />
                       </button>
                     )}
                     <button
                       onClick={() => removeFile(pdfFile.id)}
-                      className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer"
+                      className="p-2 text-foreground/40 hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all cursor-pointer"
                     >
                       <IconTrash size={18} />
                     </button>
                   </div>
                 </div>
 
-                {/* Page Selection (for remove/extract modes) */}
+                {/* Extended Selection View */}
                 {(mode === 'remove' || mode === 'extract') && pdfFiles[0].id === pdfFile.id && (
-                  <div className="mt-4 pt-4 border-t border-border/50">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-semibold text-foreground">
-                        {mode === 'remove' ? 'Select pages to remove:' : 'Select pages to extract:'}
+                  <div className="mt-6 pt-6 border-t border-border/20">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-[13px] font-black uppercase tracking-[0.1em] text-foreground/40">
+                        {mode === 'remove' ? 'Discard Pages' : 'Keep Pages'}
                       </span>
                       <div className="flex gap-2">
                         <button
                           onClick={() => selectAllPages(pdfFile.id)}
-                          className="text-xs px-2 py-1 bg-secondary hover:bg-secondary/80 rounded text-foreground cursor-pointer"
+                          className="text-[11px] font-black uppercase tracking-widest px-3 py-1.5 bg-foreground/5 hover:bg-foreground/10 rounded-lg text-foreground/60 transition-colors cursor-pointer"
                         >
-                          Select All
+                          All
                         </button>
                         <button
                           onClick={() => clearSelection(pdfFile.id)}
-                          className="text-xs px-2 py-1 bg-secondary hover:bg-secondary/80 rounded text-foreground cursor-pointer"
+                          className="text-[11px] font-black uppercase tracking-widest px-3 py-1.5 bg-foreground/5 hover:bg-foreground/10 rounded-lg text-foreground/60 transition-colors cursor-pointer"
                         >
-                          Clear
+                          None
                         </button>
                       </div>
                     </div>
-                    <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto custom-scrollbar">
+                    <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
                       {Array.from({ length: pdfFile.pageCount }, (_, i) => i + 1).map((pageNum) => {
                         const isSelected = pdfFile.selectedPages.includes(pageNum);
                         return (
                           <button
                             key={pageNum}
                             onClick={() => togglePageSelection(pdfFile.id, pageNum)}
-                            className={`w-10 h-10 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-primary text-primary-foreground shadow-md'
-                                : 'bg-secondary/50 text-muted-foreground hover:bg-secondary'
-                            }`}
+                            className={`w-12 h-12 rounded-xl text-[14px] font-bold transition-all active:scale-90 cursor-pointer ${isSelected
+                              ? 'bg-foreground text-background shadow-lg shadow-foreground/10'
+                              : 'bg-foreground/[0.03] text-foreground/40 hover:bg-foreground/[0.08]'
+                              }`}
                           >
                             {pageNum}
                           </button>
                         );
                       })}
                     </div>
-                    {pdfFile.selectedPages.length > 0 && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {pdfFile.selectedPages.length} {pdfFile.selectedPages.length === 1 ? 'page' : 'pages'} selected
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Text Editing (for edit mode) */}
-                {mode === 'edit' && pdfFiles[0].id === pdfFile.id && (
-                  <div className="mt-4 pt-4 border-t border-border/50">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-semibold text-foreground">Text Annotations:</span>
-                      <button
-                        onClick={() => addTextAnnotation(pdfFile.id)}
-                        className="text-xs px-3 py-1.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all flex items-center gap-1 cursor-pointer"
-                      >
-                        <IconPlus size={14} /> Add Text
-                      </button>
-                    </div>
-
-                    {/* Text Annotation Form */}
-                    {editingAnnotation && editingAnnotation.fileId === pdfFile.id && (
-                      <div className="mb-4 p-4 bg-secondary/50 rounded-xl border border-border/50">
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                          <div>
-                            <label className="text-xs font-semibold text-foreground mb-1 block">Page Number</label>
-                            <input
-                              type="number"
-                              min="1"
-                              max={pdfFile.pageCount}
-                              value={editingAnnotation.annotation.page || 1}
-                              onChange={(e) => setEditingAnnotation({
-                                ...editingAnnotation,
-                                annotation: { ...editingAnnotation.annotation, page: parseInt(e.target.value) || 1 }
-                              })}
-                              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs font-semibold text-foreground mb-1 block">Font Size</label>
-                            <input
-                              type="number"
-                              min="8"
-                              max="72"
-                              value={editingAnnotation.annotation.fontSize || 12}
-                              onChange={(e) => setEditingAnnotation({
-                                ...editingAnnotation,
-                                annotation: { ...editingAnnotation.annotation, fontSize: parseInt(e.target.value) || 12 }
-                              })}
-                              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs font-semibold text-foreground mb-1 block">X Position</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={editingAnnotation.annotation.x || 50}
-                              onChange={(e) => setEditingAnnotation({
-                                ...editingAnnotation,
-                                annotation: { ...editingAnnotation.annotation, x: parseInt(e.target.value) || 50 }
-                              })}
-                              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-xs font-semibold text-foreground mb-1 block">Y Position</label>
-                            <input
-                              type="number"
-                              min="0"
-                              value={editingAnnotation.annotation.y || 50}
-                              onChange={(e) => setEditingAnnotation({
-                                ...editingAnnotation,
-                                annotation: { ...editingAnnotation.annotation, y: parseInt(e.target.value) || 50 }
-                              })}
-                              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm"
-                            />
-                          </div>
-                        </div>
-                        <div className="mb-3">
-                          <label className="text-xs font-semibold text-foreground mb-1 block">Text Content</label>
-                          <textarea
-                            value={editingAnnotation.annotation.text || ''}
-                            onChange={(e) => setEditingAnnotation({
-                              ...editingAnnotation,
-                              annotation: { ...editingAnnotation.annotation, text: e.target.value }
-                            })}
-                            placeholder="Enter text to add to PDF"
-                            className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm min-h-[80px]"
-                          />
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={saveTextAnnotation}
-                            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-all flex items-center gap-1 cursor-pointer"
-                          >
-                            <IconCheck size={16} /> Save
-                          </button>
-                          <button
-                            onClick={() => setEditingAnnotation(null)}
-                            className="px-4 py-2 bg-secondary text-foreground rounded-lg text-sm font-semibold hover:bg-secondary/80 transition-all flex items-center gap-1 cursor-pointer"
-                          >
-                            <IconX size={16} /> Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* List of Text Annotations */}
-                    {pdfFile.textAnnotations && pdfFile.textAnnotations.length > 0 && (
-                      <div className="space-y-2">
-                        {pdfFile.textAnnotations.map((annotation, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
-                            <div className="flex-1">
-                              <p className="text-sm font-semibold text-foreground">{annotation.text}</p>
-                              <p className="text-xs text-muted-foreground">
-                                Page {annotation.page} • Position: ({annotation.x}, {annotation.y}) • Size: {annotation.fontSize}pt
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => removeTextAnnotation(pdfFile.id, index)}
-                              className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer"
-                            >
-                              <IconTrash size={16} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -574,100 +378,51 @@ export const PDFEditor = () => {
           </div>
         )}
 
-        {/* Action Buttons */}
+        {/* Global Actions */}
         {pdfFiles.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-3">
-            {mode === 'combine' && (
-              <Button
-                onClick={handleCombine}
-                disabled={loading || pdfFiles.length < 2}
-                className="flex-1 py-4"
-              >
-                {loading ? (
-                  <>
-                    <IconRefresh className="mr-2 w-5 h-5 animate-spin" /> Combining...
-                  </>
-                ) : (
-                  <>
-                    <IconDownload className="mr-2 w-5 h-5" /> Combine & Download
-                  </>
-                )}
-              </Button>
-            )}
-            {mode === 'remove' && (
-              <Button
-                onClick={handleRemovePages}
-                disabled={loading || pdfFiles[0]?.selectedPages.length === 0}
-                className="flex-1 py-4"
-              >
-                {loading ? (
-                  <>
-                    <IconRefresh className="mr-2 w-5 h-5 animate-spin" /> Processing...
-                  </>
-                ) : (
-                  <>
-                    <IconDownload className="mr-2 w-5 h-5" /> Remove Pages & Download
-                  </>
-                )}
-              </Button>
-            )}
-            {mode === 'extract' && (
-              <Button
-                onClick={handleExtractPages}
-                disabled={loading || pdfFiles[0]?.selectedPages.length === 0}
-                className="flex-1 py-4"
-              >
-                {loading ? (
-                  <>
-                    <IconRefresh className="mr-2 w-5 h-5 animate-spin" /> Processing...
-                  </>
-                ) : (
-                  <>
-                    <IconDownload className="mr-2 w-5 h-5" /> Extract Pages & Download
-                  </>
-                )}
-              </Button>
-            )}
-            {mode === 'edit' && (
-              <Button
-                onClick={handleEditText}
-                disabled={loading || !pdfFiles[0]?.textAnnotations || pdfFiles[0].textAnnotations.length === 0}
-                className="flex-1 py-4"
-              >
-                {loading ? (
-                  <>
-                    <IconRefresh className="mr-2 w-5 h-5 animate-spin" /> Processing...
-                  </>
-                ) : (
-                  <>
-                    <IconDownload className="mr-2 w-5 h-5" /> Save & Download Edited PDF
-                  </>
-                )}
-              </Button>
-            )}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => {
+                if (mode === 'combine') handleCombine();
+                else if (mode === 'remove') handleRemovePages();
+                else if (mode === 'extract') handleExtractPages();
+                else if (mode === 'edit') handleEditText();
+              }}
+              disabled={loading || (mode === 'combine' && pdfFiles.length < 2) || (mode !== 'combine' && pdfFiles[0]?.selectedPages.length === 0 && mode !== 'edit')}
+              className="flex-1 h-16 bg-foreground text-background font-black rounded-2xl text-[16px] flex items-center justify-center gap-3 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-20 disabled:cursor-not-allowed shadow-xl shadow-foreground/5 cursor-pointer"
+            >
+              {loading ? (
+                <IconRefresh className="animate-spin" size={20} />
+              ) : (
+                <>
+                  <IconDownload size={20} />
+                  {mode === 'combine' ? 'Merge & Save' : mode === 'remove' ? 'Update & Download' : mode === 'extract' ? 'Export Selected' : 'Finalize PDF'}
+                </>
+              )}
+            </button>
             <button
               onClick={reset}
-              className="px-6 py-4 bg-muted/50 text-foreground font-semibold rounded-xl hover:bg-muted/80 transition-all border border-transparent hover:border-border"
+              className="px-8 h-16 bg-foreground/[0.03] text-foreground font-bold rounded-2xl text-[15px] hover:bg-foreground/[0.06] transition-all active:scale-[0.98] border border-border/20 cursor-pointer"
             >
-              <IconRefresh size={18} className="inline mr-2" /> Reset
+              Reset
             </button>
           </div>
         )}
 
-        {/* Instructions */}
+        {/* Empty State Instructions */}
         {pdfFiles.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            <p className="text-sm">
-              {mode === 'combine' && 'Upload multiple PDF files to combine them into one'}
-              {mode === 'remove' && 'Upload a PDF file and select pages to remove'}
-              {mode === 'extract' && 'Upload a PDF file and select pages to extract into a new PDF'}
-              {mode === 'edit' && 'Upload a PDF file and add text annotations to edit it'}
+          <div className="text-center py-6 opacity-40">
+            <p className="text-[13px] font-medium leading-relaxed">
+              {mode === 'combine' && 'Merge two or more PDFs into a single professional document.'}
+              {mode === 'remove' && 'Select specific pages to permanently remove from the document.'}
+              {mode === 'extract' && 'Create a new PDF containing only the pages you select here.'}
+              {mode === 'edit' && 'Add text overlays and annotations directly onto the PDF surface.'}
             </p>
           </div>
         )}
       </div>
 
-      {/* PDF Preview Modal */}
+      {/* Modern PDF Preview Wrapper */}
       {previewFile && (
         <PDFPreview
           file={previewFile.file}
@@ -685,13 +440,7 @@ export const PDFEditor = () => {
           }}
           onTextEdit={(page, x, y, text) => {
             if (text) {
-              const newAnnotation: TextAnnotation = {
-                page,
-                text,
-                x,
-                y,
-                fontSize: 12
-              };
+              const newAnnotation: TextAnnotation = { page, text, x, y, fontSize: 12 };
               setPdfFiles(pdfFiles.map(f => {
                 if (f.id === previewFile.id) {
                   return {

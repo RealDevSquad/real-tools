@@ -54,13 +54,13 @@ export const FileHashChecker = () => {
       const fileContent = await file.arrayBuffer();
       const calculatedHash = await generateHash(new TextDecoder().decode(fileContent), algorithm);
       const match = calculatedHash.toLowerCase() === expectedHash.trim().toLowerCase();
-      
+
       if (match) {
         showToast('Hash matches! File is verified');
       } else {
         showToast('Hash does not match! File may be corrupted', 'error');
       }
-      
+
       setHash(calculatedHash);
     } catch (err) {
       showToast('Failed to verify hash', 'error');
@@ -76,54 +76,67 @@ export const FileHashChecker = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-2">
-            <IconFile className="w-8 h-8 text-primary" />
+    <div className="w-full max-w-2xl mx-auto py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-10"
+      >
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-secondary/30 rounded-2xl mb-2">
+            <IconFile className="w-8 h-8 text-foreground/60" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            File Hash Checker
+          <h1 className="text-4xl font-black tracking-tight text-foreground">
+            Checksum Utility
           </h1>
-          <p className="text-muted-foreground">Calculate and verify file checksums (MD5, SHA256, etc.)</p>
+          <p className="text-[15px] text-foreground/40 font-medium max-w-sm mx-auto leading-relaxed">
+            Verify file integrity with industry-standard cryptographic primitives. Secure, local, and private.
+          </p>
         </div>
 
-        <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 space-y-6">
+        <div className="apple-card p-6 bg-secondary/20 border-border/40">
           {!file ? (
-            <FileUpload onChange={handleFileSelect} isProcessing={false} />
+            <div className="apple-card bg-background/50 border-dashed border-2 border-border/20 p-12 transition-all hover:border-primary/50 group">
+              <FileUpload onChange={handleFileSelect} isProcessing={false} />
+            </div>
           ) : (
-            <>
-              <div className="bg-background border border-border rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
+            <div className="space-y-8">
+              {/* File Info Card */}
+              <div className="apple-card bg-background p-5 flex items-center justify-between border-border/30">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-secondary/50 rounded-xl flex items-center justify-center">
+                    <IconFile className="w-6 h-6 text-foreground/40" />
                   </div>
-                  <button
-                    onClick={() => {
-                      setFile(null);
-                      setHash('');
-                      setExpectedHash('');
-                    }}
-                    className="px-3 py-1.5 bg-muted hover:bg-muted/80 rounded-lg transition-colors text-sm cursor-pointer"
-                  >
-                    Remove
-                  </button>
+                  <div>
+                    <p className="text-[15px] font-bold text-foreground truncate max-w-[200px]">{file.name}</p>
+                    <p className="text-[12px] font-medium text-foreground/30">{(file.size / 1024).toFixed(2)} KB</p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => {
+                    setFile(null);
+                    setHash('');
+                    setExpectedHash('');
+                  }}
+                  className="px-4 py-2 bg-secondary/40 text-[12px] font-black uppercase tracking-widest text-foreground/60 rounded-lg hover:bg-secondary/60 hover:text-foreground transition-all cursor-pointer"
+                >
+                  Discard
+                </button>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Algorithm</label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {/* Algorithm Segmented Control */}
+              <div className="space-y-3">
+                <label className="text-[11px] font-black uppercase tracking-widest text-foreground/30 px-1">Primary Algorithm</label>
+                <div className="flex p-1 bg-secondary/30 rounded-2xl border border-border/20">
                   {algorithms.map((alg) => (
                     <button
                       key={alg.value}
                       onClick={() => setAlgorithm(alg.value)}
-                      className={`px-4 py-2 rounded-xl font-semibold transition-all cursor-pointer ${
-                        algorithm === alg.value
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                      }`}
+                      className={`flex-1 py-3 text-[13px] font-bold rounded-xl transition-all cursor-pointer ${algorithm === alg.value
+                        ? 'bg-background text-foreground shadow-sm ring-1 ring-border/10'
+                        : 'text-foreground/40 hover:text-foreground/60'
+                        }`}
                     >
                       {alg.label}
                     </button>
@@ -131,53 +144,59 @@ export const FileHashChecker = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={handleCalculate}
-                  className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-all cursor-pointer"
-                >
-                  Calculate Hash
-                </button>
-              </div>
+              {/* Primary Action */}
+              <button
+                onClick={handleCalculate}
+                className="w-full h-16 bg-foreground text-background font-black rounded-2xl text-[16px] flex items-center justify-center gap-3 hover:opacity-90 active:scale-[0.98] transition-all shadow-xl shadow-foreground/5 cursor-pointer"
+              >
+                Generate Signature
+              </button>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Expected Hash (for verification)</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={expectedHash}
-                    onChange={(e) => setExpectedHash(e.target.value)}
-                    placeholder="Paste expected hash to verify..."
-                    className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
-                  />
-                  <button
-                    onClick={handleVerify}
-                    disabled={isVerifying || !expectedHash.trim()}
-                    className="px-6 py-2 bg-secondary text-foreground rounded-lg font-semibold hover:bg-secondary/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {isVerifying ? 'Verifying...' : 'Verify'}
-                  </button>
-                </div>
-              </div>
-
-              {hash && (
-                <div className="bg-background border border-border rounded-xl p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">Calculated Hash</h3>
+              {/* Verification Section */}
+              <div className="space-y-4 pt-4 border-t border-border/10">
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-foreground/30 px-1">Integrity Verification</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={expectedHash}
+                      onChange={(e) => setExpectedHash(e.target.value)}
+                      placeholder="Inject expected hash..."
+                      className="w-full h-14 pl-6 pr-24 bg-background border border-border/30 rounded-xl text-[14px] font-mono focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all placeholder:text-foreground/20"
+                    />
                     <button
-                      onClick={() => handleCopy(hash)}
-                      className="p-1.5 hover:bg-muted rounded-lg transition-colors cursor-pointer"
-                      title="Copy"
+                      onClick={handleVerify}
+                      disabled={isVerifying || !expectedHash.trim()}
+                      className="absolute right-2 top-2 bottom-2 px-4 bg-secondary text-foreground rounded-lg font-black text-[11px] uppercase tracking-widest hover:bg-secondary/80 transition-all disabled:opacity-20 cursor-pointer"
                     >
-                      <IconCopy className="w-4 h-4" />
+                      {isVerifying ? 'Verifying...' : 'Verify'}
                     </button>
                   </div>
-                  <div className="bg-muted/30 rounded-lg p-3 font-mono text-sm break-all">
-                    {hash}
-                  </div>
                 </div>
-              )}
-            </>
+
+                {hash && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="apple-card bg-background border-border/30 overflow-hidden"
+                  >
+                    <div className="px-6 py-4 bg-secondary/10 border-b border-border/5 flex items-center justify-between">
+                      <span className="text-[11px] font-black uppercase tracking-widest text-foreground/40">Calculated Payload</span>
+                      <button
+                        onClick={() => handleCopy(hash)}
+                        className="p-1.5 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all cursor-pointer"
+                        title="Copy Signature"
+                      >
+                        <IconCopy size={16} />
+                      </button>
+                    </div>
+                    <div className="p-6 font-mono text-[13px] text-foreground/80 leading-relaxed break-all bg-secondary/5">
+                      {hash}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </motion.div>

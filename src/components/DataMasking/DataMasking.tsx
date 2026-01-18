@@ -12,7 +12,7 @@ export const DataMasking = () => {
   const maskEmail = (email: string): string => {
     const [local, domain] = email.split('@');
     if (!domain) return email;
-    const maskedLocal = local.length > 2 
+    const maskedLocal = local.length > 2
       ? local[0] + maskChar.repeat(local.length - 2) + local[local.length - 1]
       : maskChar.repeat(local.length);
     const [domainName, tld] = domain.split('.');
@@ -67,47 +67,62 @@ export const DataMasking = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-8">
+    <div className="w-full max-w-4xl mx-auto py-12">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
+        className="space-y-10"
       >
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-2">
-            <IconEyeOff className="w-8 h-8 text-primary" />
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-secondary/30 rounded-2xl mb-2">
+            <IconEyeOff className="w-8 h-8 text-foreground/60" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Data Masking Tool
+          <h1 className="text-4xl font-black tracking-tight text-foreground">
+            Privacy Filter
           </h1>
-          <p className="text-muted-foreground">
-            Mask sensitive data like emails, phone numbers, SSNs, and credit cards
+          <p className="text-[15px] text-foreground/40 font-medium max-w-md mx-auto leading-relaxed">
+            Protect sensitive information by masking PII, financial data, and identifiers with zero external data transfer.
           </p>
         </div>
 
-        <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Mask Character</label>
-            <input
-              type="text"
-              value={maskChar}
-              onChange={(e) => setMaskChar(e.target.value[0] || '*')}
-              maxLength={1}
-              className="w-20 px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+        <div className="apple-card p-8 bg-secondary/20 border-border/40 space-y-8">
+          {/* Configuration */}
+          <div className="flex items-center justify-between border-b border-border/10 pb-6">
+            <div className="space-y-1">
+              <label className="text-[11px] font-black uppercase tracking-widest text-foreground/30 px-1">Obfuscation Variable</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  value={maskChar}
+                  onChange={(e) => setMaskChar(e.target.value[0] || '*')}
+                  maxLength={1}
+                  className="w-14 h-11 bg-background border border-border/30 rounded-xl text-center text-[18px] font-black focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all text-foreground"
+                />
+                <span className="text-[13px] font-medium text-foreground/40">Masking character used for redaction</span>
+              </div>
+            </div>
+            <div className="hidden sm:block text-right">
+              <p className="text-[10px] font-black uppercase tracking-widest text-foreground/20">Supported Patterns</p>
+              <p className="text-[13px] font-bold text-foreground/40">Email • Phone • SSN • CC</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium">Input Text</label>
+          {/* Editor Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[500px]">
+            {/* Input Section */}
+            <div className="flex flex-col h-full apple-card bg-background border-border/40 overflow-hidden shadow-sm">
+              <div className="flex items-center justify-between px-6 h-14 border-b border-border/10 shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-foreground/20" />
+                  <h2 className="text-[12px] font-black uppercase tracking-widest text-foreground/60">Source Data</h2>
+                </div>
                 {input && (
                   <button
                     onClick={() => handleCopy(input)}
-                    className="p-1.5 hover:bg-muted rounded-lg transition-colors cursor-pointer"
-                    title="Copy input"
+                    className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all cursor-pointer"
                   >
-                    <IconCopy className="w-4 h-4" />
+                    <IconCopy size={16} />
                   </button>
                 )}
               </div>
@@ -117,40 +132,46 @@ export const DataMasking = () => {
                   setInput(e.target.value);
                   setOutput('');
                 }}
-                placeholder="Enter text with emails, phone numbers, SSNs, or credit cards..."
-                className="w-full h-64 px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-sm resize-none"
+                placeholder="Inject sensitive data strings..."
+                className="flex-1 w-full px-8 py-6 bg-transparent focus:outline-none font-mono text-[14px] leading-relaxed resize-none custom-scrollbar"
                 spellCheck={false}
               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium">Masked Output</label>
+            {/* Output Section */}
+            <div className="flex flex-col h-full apple-card bg-secondary/10 border-border/30 overflow-hidden shadow-sm">
+              <div className="flex items-center justify-between px-6 h-14 border-b border-border/10 shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-primary" />
+                  <h2 className="text-[12px] font-black uppercase tracking-widest text-foreground/60">Sanitized Material</h2>
+                </div>
                 {output && (
                   <button
                     onClick={() => handleCopy(output)}
-                    className="p-1.5 hover:bg-muted rounded-lg transition-colors cursor-pointer"
-                    title="Copy output"
+                    className="p-2 text-foreground/40 hover:text-foreground hover:bg-foreground/5 rounded-lg transition-all cursor-pointer"
                   >
-                    <IconCopy className="w-4 h-4" />
+                    <IconCopy size={16} />
                   </button>
                 )}
               </div>
               <textarea
                 value={output}
                 readOnly
-                className="w-full h-64 px-4 py-3 bg-muted/30 border border-border rounded-xl text-sm resize-none"
+                placeholder="Sanitized output will manifest here..."
+                className="flex-1 w-full px-8 py-6 bg-transparent font-mono text-[14px] leading-relaxed resize-none custom-scrollbar text-foreground/80 italic"
                 spellCheck={false}
               />
             </div>
           </div>
 
+          {/* Action Trigger */}
           <button
             onClick={handleMask}
             disabled={!input.trim()}
-            className="mt-4 w-full px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="w-full h-16 bg-foreground text-background font-black rounded-2xl text-[16px] flex items-center justify-center gap-3 hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-20 disabled:cursor-not-allowed shadow-xl shadow-foreground/5 cursor-pointer"
           >
-            Mask Sensitive Data
+            <IconEyeOff size={20} />
+            Execute Redaction
           </button>
         </div>
       </motion.div>
