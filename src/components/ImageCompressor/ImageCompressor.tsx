@@ -184,16 +184,6 @@ export const ImageCompressor = () => {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-8"
       >
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Image Compressor
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Resize, compress, and convert images to your desired format. All processing happens locally in your browser.
-          </p>
-        </div>
-
         {/* Error Message */}
         <AnimatePresence>
           {error && (
