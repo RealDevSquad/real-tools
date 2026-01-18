@@ -6,12 +6,12 @@ import {
   IconFile,
   IconRefresh,
 } from '@tabler/icons-react';
-import { convertPDFToDOCX, convertDOCXToPDF, downloadFile } from '../../utils/fileConverter';
+import { convertPDFToDOCX, convertDOCXToPDF, convertEPUBToPDF, convertPDFToEPUB, downloadFile } from '../../utils/fileConverter';
 import { Button } from '../ui/stateful-button';
 import { FileUpload } from '../ui/file-upload';
 import { formatBytes } from '../../utils/imageProcessor';
 
-type ConversionType = 'pdf-to-docx' | 'docx-to-pdf';
+type ConversionType = 'pdf-to-docx' | 'docx-to-pdf' | 'epub-to-pdf' | 'pdf-to-epub';
 
 interface ConvertedFile {
   original: File;
@@ -31,16 +31,22 @@ export const FileConverter = () => {
   const handleFileSelect = (selectedFiles: File[]) => {
     // Filter files based on conversion type
     const validFiles = selectedFiles.filter(file => {
-      if (conversionType === 'pdf-to-docx') {
+      if (conversionType === 'pdf-to-docx' || conversionType === 'pdf-to-epub') {
         return file.type === 'application/pdf';
-      } else {
+      } else if (conversionType === 'docx-to-pdf') {
         return file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
                file.name.toLowerCase().endsWith('.docx');
+      } else if (conversionType === 'epub-to-pdf') {
+        return file.type === 'application/epub+zip' ||
+               file.name.toLowerCase().endsWith('.epub');
       }
+      return false;
     });
 
     if (validFiles.length === 0 && selectedFiles.length > 0) {
-      setError(`Please select ${conversionType === 'pdf-to-docx' ? 'PDF' : 'DOCX'} files only`);
+      const fileType = conversionType === 'pdf-to-docx' || conversionType === 'pdf-to-epub' ? 'PDF' : 
+                      conversionType === 'docx-to-pdf' ? 'DOCX' : 'EPUB';
+      setError(`Please select ${fileType} files only`);
       return;
     }
 
@@ -75,8 +81,12 @@ export const FileConverter = () => {
         
         if (conversionType === 'pdf-to-docx') {
           convertedBlob = await convertPDFToDOCX(file);
-        } else {
+        } else if (conversionType === 'docx-to-pdf') {
           convertedBlob = await convertDOCXToPDF(file);
+        } else if (conversionType === 'epub-to-pdf') {
+          convertedBlob = await convertEPUBToPDF(file);
+        } else {
+          convertedBlob = await convertPDFToEPUB(file);
         }
 
         newConverted.push({
@@ -97,10 +107,18 @@ export const FileConverter = () => {
   };
 
   const handleDownload = (converted: ConvertedFile) => {
-    const extension = converted.type === 'pdf-to-docx' ? 'docx' : 'pdf';
+    let extension: string;
+    if (converted.type === 'pdf-to-docx') {
+      extension = 'docx';
+    } else if (converted.type === 'pdf-to-epub') {
+      extension = 'epub';
+    } else {
+      extension = 'pdf';
+    }
     const filename = `${converted.original.name.replace(/\.[^/.]+$/, '')}.${extension}`;
     downloadFile(converted.converted, filename);
   };
+
 
   const handleDownloadAll = () => {
     convertedFiles.forEach((converted, index) => {
@@ -145,10 +163,10 @@ export const FileConverter = () => {
             <IconFileText className="w-5 h-5 text-primary" />
             <h2 className="text-xl font-bold">Conversion Type</h2>
           </div>
-          <div className="flex gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <button
               onClick={() => handleConversionTypeChange('pdf-to-docx')}
-              className={`flex-1 px-6 py-3 rounded-xl border-2 transition-all ${
+              className={`px-4 py-3 rounded-xl border-2 transition-all ${
                 conversionType === 'pdf-to-docx'
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border bg-background text-muted-foreground hover:border-primary/50'
@@ -156,12 +174,12 @@ export const FileConverter = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <IconFile className="w-5 h-5" />
-                <span className="font-semibold">PDF → DOCX</span>
+                <span className="font-semibold text-sm">PDF → DOCX</span>
               </div>
             </button>
             <button
               onClick={() => handleConversionTypeChange('docx-to-pdf')}
-              className={`flex-1 px-6 py-3 rounded-xl border-2 transition-all ${
+              className={`px-4 py-3 rounded-xl border-2 transition-all ${
                 conversionType === 'docx-to-pdf'
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border bg-background text-muted-foreground hover:border-primary/50'
@@ -169,14 +187,44 @@ export const FileConverter = () => {
             >
               <div className="flex items-center justify-center gap-2">
                 <IconFileText className="w-5 h-5" />
-                <span className="font-semibold">DOCX → PDF</span>
+                <span className="font-semibold text-sm">DOCX → PDF</span>
+              </div>
+            </button>
+            <button
+              onClick={() => handleConversionTypeChange('epub-to-pdf')}
+              className={`px-4 py-3 rounded-xl border-2 transition-all ${
+                conversionType === 'epub-to-pdf'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-background text-muted-foreground hover:border-primary/50'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <IconFileText className="w-5 h-5" />
+                <span className="font-semibold text-sm">EPUB → PDF</span>
+              </div>
+            </button>
+            <button
+              onClick={() => handleConversionTypeChange('pdf-to-epub')}
+              className={`px-4 py-3 rounded-xl border-2 transition-all ${
+                conversionType === 'pdf-to-epub'
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border bg-background text-muted-foreground hover:border-primary/50'
+              }`}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <IconFileText className="w-5 h-5" />
+                <span className="font-semibold text-sm">PDF → EPUB</span>
               </div>
             </button>
           </div>
           <p className="text-xs text-muted-foreground mt-4 text-center">
             {conversionType === 'pdf-to-docx' 
               ? 'Note: PDF to DOCX conversion extracts text content. Complex formatting, images, and layouts may not be fully preserved.'
-              : 'Note: DOCX to PDF conversion preserves text and basic formatting. Complex layouts may vary.'}
+              : conversionType === 'docx-to-pdf'
+              ? 'Note: DOCX to PDF conversion preserves text and basic formatting. Complex layouts may vary.'
+              : conversionType === 'epub-to-pdf'
+              ? 'Note: EPUB to PDF conversion extracts text content from EPUB files. Complex formatting, images, and styles may not be fully preserved.'
+              : 'Note: PDF to EPUB conversion extracts text content from PDF files. Complex formatting, images, and layouts may not be fully preserved.'}
           </p>
         </div>
 
@@ -208,13 +256,22 @@ export const FileConverter = () => {
               <FileUpload 
                 onChange={handleFileSelect} 
                 isProcessing={loading}
-                accept={conversionType === 'pdf-to-docx' ? 'application/pdf' : '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
+                accept={
+                  conversionType === 'pdf-to-docx' || conversionType === 'pdf-to-epub'
+                    ? 'application/pdf' 
+                    : conversionType === 'docx-to-pdf'
+                    ? '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                    : '.epub,application/epub+zip'
+                }
                 filterFiles={(files) => files.filter(file => {
-                  if (conversionType === 'pdf-to-docx') {
+                  if (conversionType === 'pdf-to-docx' || conversionType === 'pdf-to-epub') {
                     return file.type === 'application/pdf';
-                  } else {
+                  } else if (conversionType === 'docx-to-pdf') {
                     return file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
                            file.name.toLowerCase().endsWith('.docx');
+                  } else {
+                    return file.type === 'application/epub+zip' ||
+                           file.name.toLowerCase().endsWith('.epub');
                   }
                 })}
               />
@@ -267,7 +324,11 @@ export const FileConverter = () => {
                 disabled={files.length === 0 || loading}
                 className="w-full"
               >
-                {loading ? 'Converting...' : `Convert to ${conversionType === 'pdf-to-docx' ? 'DOCX' : 'PDF'}`}
+                {loading ? 'Converting...' : `Convert to ${
+                  conversionType === 'pdf-to-docx' ? 'DOCX' : 
+                  conversionType === 'pdf-to-epub' ? 'EPUB' : 
+                  'PDF'
+                }`}
               </Button>
             </motion.div>
           )}
