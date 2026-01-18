@@ -1,7 +1,6 @@
-import { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  IconUpload,
   IconDownload,
   IconTrash,
   IconPhoto,
@@ -10,6 +9,7 @@ import {
 } from '@tabler/icons-react';
 import { compressImage, formatBytes, type ImageFormat, type CompressionOptions } from '../../utils/imageProcessor';
 import { Button } from '../ui/stateful-button';
+import { FileUpload } from '../ui/file-upload';
 
 interface CompressedImage {
   original: File;
@@ -25,7 +25,8 @@ export const ImageCompressor = () => {
   const [compressedImages, setCompressedImages] = useState<CompressedImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewSizes, setPreviewSizes] = useState<Map<number, number>>(new Map());
+  const [calculatingPreview, setCalculatingPreview] = useState(false);
 
   // Compression settings
   const [width, setWidth] = useState<number | ''>('');
@@ -34,11 +35,9 @@ export const ImageCompressor = () => {
   const [format, setFormat] = useState<ImageFormat>('jpeg');
   const [maintainAspectRatio, setMaintainAspectRatio] = useState(true);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (!selectedFiles || selectedFiles.length === 0) return;
-
-    const imageFiles = Array.from(selectedFiles).filter(file => 
+  const handleFileSelect = (selectedFiles: File[]) => {
+    // FileUpload already filters for images, but double-check
+    const imageFiles = selectedFiles.filter(file => 
       file.type.startsWith('image/')
     );
 
@@ -49,12 +48,45 @@ export const ImageCompressor = () => {
 
     setFiles(prev => [...prev, ...imageFiles]);
     setError(null);
-
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    // Clear preview sizes when new files are added
+    setPreviewSizes(new Map());
   };
+
+  // Calculate preview sizes when settings change
+  useEffect(() => {
+    if (files.length === 0) return;
+
+    const calculatePreviewSizes = async () => {
+      setCalculatingPreview(true);
+      const newPreviewSizes = new Map<number, number>();
+
+      try {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const options: CompressionOptions = {
+            width: width ? Number(width) : undefined,
+            height: height ? Number(height) : undefined,
+            quality,
+            format,
+            maintainAspectRatio,
+          };
+
+          // Do a quick preview compression
+          const previewBlob = await compressImage(file, options);
+          newPreviewSizes.set(i, previewBlob.size);
+        }
+        setPreviewSizes(newPreviewSizes);
+      } catch (err) {
+        console.warn('Failed to calculate preview sizes:', err);
+      } finally {
+        setCalculatingPreview(false);
+      }
+    };
+
+    // Debounce the preview calculation
+    const timeoutId = setTimeout(calculatePreviewSizes, 500);
+    return () => clearTimeout(timeoutId);
+  }, [files, width, height, quality, format, maintainAspectRatio]);
 
   const handleCompress = async () => {
     if (files.length === 0) {
@@ -117,7 +149,19 @@ export const ImageCompressor = () => {
   };
 
   const handleRemoveFile = (index: number) => {
-    setFiles(files.filter((_, i) => i !== index));
+    const newFiles = files.filter((_, i) => i !== index);
+    setFiles(newFiles);
+    
+    // Update preview sizes map - remove the deleted file and reindex
+    const newPreviewSizes = new Map<number, number>();
+    newFiles.forEach((_, newIndex) => {
+      const oldIndex = newIndex >= index ? newIndex + 1 : newIndex;
+      const size = previewSizes.get(oldIndex);
+      if (size !== undefined) {
+        newPreviewSizes.set(newIndex, size);
+      }
+    });
+    setPreviewSizes(newPreviewSizes);
   };
 
   const handleClearAll = () => {
@@ -125,6 +169,7 @@ export const ImageCompressor = () => {
     compressedImages.forEach(img => URL.revokeObjectURL(img.previewUrl));
     setFiles([]);
     setCompressedImages([]);
+    setPreviewSizes(new Map());
     setError(null);
   };
 
@@ -149,60 +194,112 @@ export const ImageCompressor = () => {
           </p>
         </div>
 
-        {/* File Upload */}
-        <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">
-          <div className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-8 hover:border-primary/50 transition-colors">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-              id="image-compressor-input"
-            />
-            <label
-              htmlFor="image-compressor-input"
-              className="flex flex-col items-center cursor-pointer"
+        {/* Error Message */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-lg"
             >
-              <IconUpload className="w-12 h-12 text-muted-foreground mb-4" />
-              <span className="text-lg font-semibold mb-2">
-                {files.length > 0 ? `${files.length} file(s) selected` : 'Upload Images'}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                Click to browse or drag and drop
-              </span>
-            </label>
-          </div>
-
-          {files.length > 0 && (
-            <div className="mt-6 space-y-2">
-              {files.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <IconPhoto className="w-5 h-5 text-primary flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveFile(index)}
-                    className="p-2 hover:bg-destructive/10 rounded-lg transition-colors"
-                  >
-                    <IconTrash className="w-4 h-4 text-destructive" />
-                  </button>
-                </div>
-              ))}
-            </div>
+              {error}
+            </motion.div>
           )}
-        </div>
+        </AnimatePresence>
 
-        {/* Compression Settings */}
-        <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">
+        {/* File Upload */}
+        <AnimatePresence mode="wait">
+          {files.length === 0 && compressedImages.length === 0 && (
+            <motion.div
+              key="uploader"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="w-full flex justify-center"
+            >
+              <FileUpload onChange={handleFileSelect} isProcessing={loading} />
+            </motion.div>
+          )}
+
+          {files.length > 0 && compressedImages.length === 0 && (
+            <motion.div
+              key="file-list"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Selected Images ({files.length})</h3>
+                <button
+                  onClick={handleClearAll}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Clear All
+                </button>
+              </div>
+              <div className="space-y-2">
+                {files.map((file, index) => {
+                  const previewSize = previewSizes.get(index);
+                  const reduction = previewSize 
+                    ? ((1 - previewSize / file.size) * 100).toFixed(1)
+                    : null;
+
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <IconPhoto className="w-5 h-5 text-primary flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{file.name}</p>
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-muted-foreground">
+                              {formatBytes(file.size)}
+                            </span>
+                            {calculatingPreview && (
+                              <span className="text-muted-foreground/50">Calculating...</span>
+                            )}
+                            {!calculatingPreview && previewSize !== undefined && (
+                              <>
+                                <span className="text-muted-foreground">→</span>
+                                <span className="text-primary font-semibold">
+                                  {formatBytes(previewSize)}
+                                </span>
+                                {reduction && (
+                                  <span className="text-emerald-500 font-medium">
+                                    ({reduction}% smaller)
+                                  </span>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveFile(index)}
+                        className="p-2 hover:bg-destructive/10 rounded-lg transition-colors"
+                      >
+                        <IconTrash className="w-4 h-4 text-destructive" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Compression Settings - Only show when files are selected */}
+        {files.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6"
+          >
           <div className="flex items-center gap-2 mb-6">
             <IconSettings className="w-5 h-5 text-primary" />
             <h2 className="text-xl font-bold">Compression Settings</h2>
@@ -294,22 +391,8 @@ export const ImageCompressor = () => {
             >
               {loading ? 'Compressing...' : 'Compress Images'}
             </Button>
-            {files.length > 0 && (
-              <button
-                onClick={handleClearAll}
-                className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
-              >
-                Clear All
-              </button>
-            )}
           </div>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-lg">
-            {error}
-          </div>
+        </motion.div>
         )}
 
         {/* Results */}

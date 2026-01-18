@@ -421,87 +421,91 @@ export default function App() {
         <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight text-foreground leading-[1.1]">
           Privacy <span className="text-primary">Tools</span>
         </h1>
-        <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto mb-10">
-          Remove sensitive metadata from photos, build interactive PDF forms, and edit PDFs. All processing happens locally in your browser—your data never leaves your device.
+        <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto mb-12">
+          All-in-one privacy and productivity tools. Process files locally in your browser—your data never leaves your device.
         </p>
 
-        {/* Feature Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10 max-w-6xl mx-auto">
-          <motion.div
+        {/* Feature Cards - Compact & Scalable Design */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-10 max-w-5xl mx-auto w-full">
+          <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="group relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5"
+            onClick={() => setActiveTab('home')}
+            className="group relative p-5 md:p-6 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] text-left"
           >
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                <IconEraser size={24} className="text-primary" />
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-3 md:p-4 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <IconEraser size={28} className="text-primary" />
               </div>
-              <div className="flex-1 text-left">
-                <h3 className="font-bold text-foreground mb-2">Metadata Cleaner</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Strip Exif, XMP, and IPTC data from your photos. Protect your privacy by removing location, camera settings, and other sensitive metadata.
+              <div className="w-full">
+                <h3 className="font-bold text-sm md:text-base text-foreground mb-1">Metadata Cleaner</h3>
+                <p className="text-xs text-muted-foreground leading-snug">
+                  Remove EXIF, XMP, IPTC data
                 </p>
               </div>
             </div>
-          </motion.div>
+          </motion.button>
 
-          <motion.div
+          <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="group relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5"
+            onClick={() => setActiveTab('builder')}
+            className="group relative p-5 md:p-6 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] text-left"
           >
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                <IconWand size={24} className="text-primary" />
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-3 md:p-4 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <IconWand size={28} className="text-primary" />
               </div>
-              <div className="flex-1 text-left">
-                <h3 className="font-bold text-foreground mb-2">PDF Form Builder</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Create interactive PDF forms with drag-and-drop fields. Build professional forms and make them readonly after filling.
+              <div className="w-full">
+                <h3 className="font-bold text-sm md:text-base text-foreground mb-1">Form Builder</h3>
+                <p className="text-xs text-muted-foreground leading-snug">
+                  Create interactive PDF forms
                 </p>
               </div>
             </div>
-          </motion.div>
+          </motion.button>
 
-          <motion.div
+          <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="group relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5"
+            onClick={() => setActiveTab('editor')}
+            className="group relative p-5 md:p-6 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] text-left"
           >
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                <IconFileText size={24} className="text-primary" />
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-3 md:p-4 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <IconFileText size={28} className="text-primary" />
               </div>
-              <div className="flex-1 text-left">
-                <h3 className="font-bold text-foreground mb-2">PDF Editor</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Combine multiple PDFs, remove pages, extract pages, or add text annotations. All editing happens locally in your browser.
+              <div className="w-full">
+                <h3 className="font-bold text-sm md:text-base text-foreground mb-1">PDF Editor</h3>
+                <p className="text-xs text-muted-foreground leading-snug">
+                  Combine, edit, extract pages
                 </p>
               </div>
             </div>
-          </motion.div>
+          </motion.button>
 
-          <motion.div
+          <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="group relative p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg hover:shadow-primary/5"
+            onClick={() => setActiveTab('compressor')}
+            className="group relative p-5 md:p-6 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] text-left"
           >
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                <IconPhoto size={24} className="text-primary" />
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-3 md:p-4 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <IconPhoto size={28} className="text-primary" />
               </div>
-              <div className="flex-1 text-left">
-                <h3 className="font-bold text-foreground mb-2">Image Compressor</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Resize, compress, and convert images to your desired format and size. Control dimensions, quality, and output format.
+              <div className="w-full">
+                <h3 className="font-bold text-sm md:text-base text-foreground mb-1">Image Compressor</h3>
+                <p className="text-xs text-muted-foreground leading-snug">
+                  Resize & compress images
                 </p>
               </div>
             </div>
-          </motion.div>
+          </motion.button>
         </div>
 
         {/* Tab Navigation */}
