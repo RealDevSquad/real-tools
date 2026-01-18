@@ -19,13 +19,15 @@ import {
   IconHeart,
   IconFileText,
   IconPhoto,
-  IconFile
+  IconFile,
+  IconCode
 } from '@tabler/icons-react';
 import { FileUpload } from './components/ui/file-upload';
 import { FormBuilder } from './components/FormBuilder/FormBuilder';
 import { PDFEditor } from './components/PDFEditor/PDFEditor';
 import { ImageCompressor } from './components/ImageCompressor/ImageCompressor';
 import { FileConverter } from './components/FileConverter/FileConverter';
+import { JSONFormatter } from './components/JSONFormatter/JSONFormatter';
 import { removeMetadata, formatBytes } from './utils/imageProcessor';
 import { Button } from './components/ui/stateful-button';
 
@@ -401,7 +403,7 @@ function MetadataRemover() {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'builder' | 'editor' | 'compressor' | 'converter'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'builder' | 'editor' | 'compressor' | 'converter' | 'json-formatter'>('home');
 
   return (
     <div className="min-h-screen flex flex-col items-center py-12 md:py-20 px-4 relative overflow-hidden selection:bg-primary/30 font-sans">
@@ -428,7 +430,7 @@ export default function App() {
         </p>
 
         {/* Feature Cards - Compact & Scalable Design */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-10 max-w-6xl mx-auto w-full">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-10 max-w-7xl mx-auto w-full">
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -528,6 +530,26 @@ export default function App() {
               </div>
             </div>
           </motion.button>
+
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            onClick={() => setActiveTab('json-formatter')}
+            className="group relative p-5 md:p-6 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] text-left"
+          >
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="p-3 md:p-4 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <IconCode size={28} className="text-primary" />
+              </div>
+              <div className="w-full">
+                <h3 className="font-bold text-sm md:text-base text-foreground mb-1">JSON Formatter</h3>
+                <p className="text-xs text-muted-foreground leading-snug">
+                  Format, validate & minify
+                </p>
+              </div>
+            </div>
+          </motion.button>
         </div>
 
         {/* Tab Navigation */}
@@ -622,6 +644,24 @@ export default function App() {
               <IconFile size={16} /> File Converter
             </span>
           </button>
+          <button
+            onClick={() => setActiveTab('json-formatter')}
+            className={`
+                            relative px-6 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300
+                            ${activeTab === 'json-formatter' ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}
+                        `}
+          >
+            {activeTab === 'json-formatter' && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 bg-primary rounded-xl shadow-lg shadow-primary/20"
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-2">
+              <IconCode size={16} /> JSON Formatter
+            </span>
+          </button>
         </div>
       </motion.div>
 
@@ -667,7 +707,7 @@ export default function App() {
             >
               <ImageCompressor />
             </motion.div>
-          ) : (
+          ) : activeTab === 'converter' ? (
             <motion.div
               key="converter"
               initial={{ opacity: 0, x: 20 }}
@@ -676,6 +716,16 @@ export default function App() {
               transition={{ duration: 0.3 }}
             >
               <FileConverter />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="json-formatter"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <JSONFormatter />
             </motion.div>
           )}
         </AnimatePresence>
