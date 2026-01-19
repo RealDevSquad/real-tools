@@ -210,7 +210,6 @@ export const LandingPage = () => {
             <div className="h-px w-20 bg-border/40" />
           </div>
 
-
           <p className="text-[11px] font-medium text-foreground/20">© 2026 Privacy. All rights reserved.</p>
         </div>
       </section>
